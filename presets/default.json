@@ -1,0 +1,17 @@
+{
+    "name": "Default Compression Profile",
+    "description": "Default settings for cache-friendly memory compression",
+    "version": "1.0.0",
+    "settings": {
+        "compactThreshold": 120,
+        "contextThreshold": 75,
+        "level1ChunkSize": 10,
+        "level2ChunkSize": 5,
+        "targetCompression": 55
+    },
+    "prompts": {
+        "level1": "You are a story summarizer for a roleplay conversation...",
+        "level2": "You are a story summarizer creating a long-term summary...",
+        "level3": "You are creating an ultra-compressed story so far summary..."
+    }
+}

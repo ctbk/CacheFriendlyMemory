@@ -1,0 +1,89 @@
+# CacheFriendlyMemory
+
+A SillyTavern extension that provides automatic, hierarchical context compression for long-running roleplay chats.
+
+## Features
+
+- **Hierarchical Compression**: Progressive compression across 4 levels (raw → short-term → long-term → ultra-compressed)
+- **Auto-Compaction**: Automatically compresses when message count or context threshold is reached
+- **Cache-Friendly**: Maintains stable prompts to optimize prompt caching
+- **Non-Destructive**: Original messages preserved, only marked as summarized
+- **Configurable**: User-adjustable thresholds, chunk sizes, and compression models
+- **Per-Chat Storage**: Data persists with chat file, follows branches
+
+## Installation
+
+1. Download this extension to your SillyTavern extensions folder:
+   - For all users: `public/scripts/extensions/third-party/CacheFriendlyMemory`
+   - For current user: `data/<user-handle>/extensions/CacheFriendlyMemory`
+
+2. Enable the extension in SillyTavern's Extensions menu
+
+## Usage
+
+### Automatic Compaction
+
+By default, the extension will automatically compress chat history when:
+- Unsummarized messages exceed the threshold (default: 120)
+- Context usage exceeds the threshold (default: 75%)
+
+### Manual Compaction
+
+Use slash commands to manually control compaction:
+
+```
+/cfm-compact    Trigger compaction immediately
+/cfm-status     Show compression statistics
+/cfm-export     Export compression data to JSON
+```
+
+### Configuration
+
+Access settings in the Extensions menu under "CacheFriendlyMemory":
+
+- **Enable Extension**: Turn the extension on/off
+- **Auto Compact**: Enable/disable automatic compaction
+- **Compact Threshold**: Message count trigger (default: 120)
+- **Context Threshold**: Percentage trigger (default: 75%)
+- **Level 1 Chunk Size**: Messages per short-term summary (default: 10)
+- **Level 2 Chunk Size**: Summaries per long-term summary (default: 5)
+- **Target Compression**: Target compression ratio (default: 55%)
+- **Compression Model**: Connection profile for summarization
+- **Compression Preset**: Preset name for summarization
+- **Debug Mode**: Enable debug logging
+- **Show Progress Bar**: Display status bar in chat
+
+## Compression Strategy
+
+```
+Level 0 (Most Recent)    → Raw messages (0-120 messages)
+Level 1 (Recent Past)     → Short-term summaries (10 messages → 1 summary)
+Level 2 (Medium Past)     → Long-term summaries (5 L1 summaries → 1 L2 summary)
+Level 3 (Distant Past)    → Ultra-compressed story summary
+```
+
+### Key Principles
+
+1. **Append-Only**: Never modify existing summaries, only append new ones
+2. **Message Preservation**: Original messages kept, just marked as summarized
+3. **Chunk Merging**: Small remainders merged up for quality
+4. **Predictable Format**: `[Chapter N]` headers for caching and model comprehension
+5. **Targeted Compression**: Compress only enough to hit target ratio
+
+## Storage
+
+- **Global Settings**: Stored in `settings.json` under `extension_settings.cacheFriendlyMemory`
+- **Per-Chat Data**: Stored in chat file under `chat_metadata.cacheFriendlyMemory`
+
+## Requirements
+
+- SillyTavern 1.0.0 or higher
+- Connection profile or preset for summarization model
+
+## License
+
+This extension is open-source. Choose an appropriate license for your distribution.
+
+## Contributing
+
+Contributions welcome! Please submit pull requests or issues on GitHub.
