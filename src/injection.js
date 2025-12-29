@@ -2,6 +2,7 @@ import { getChatStorage, getGlobalSetting } from './storage.js';
 import { getContext } from '../../../../extensions.js';
 import { estimateTokenCount } from './logic/token-estimation.js';
 import { selectLevel1Summaries, selectLevel2Summaries } from './logic/summary-selection.js';
+import { calculateBudget as calculateBudgetPure } from './logic/budget-calculation.js';
 
 export async function calculateBudget() {
     const context = getContext();
@@ -11,17 +12,8 @@ export async function calculateBudget() {
     const systemPromptTokens = context.systemPromptTokens || 0;
     const characterPromptTokens = context.characterPromptTokens || 0;
 
-    const availableTokens = maxContextTokens - systemPromptTokens - characterPromptTokens;
-    const reservedForGeneration = Math.floor(maxContextTokens * 0.2);
-    const budgetForHistory = availableTokens - reservedForGeneration - currentContextTokens;
-
-    return {
-        maxContextTokens,
-        currentContextTokens,
-        availableTokens,
-        reservedForGeneration,
-        budgetForHistory,
-    };
+    return calculateBudgetPure(maxContextTokens, currentContextTokens,
+                                systemPromptTokens, characterPromptTokens);
 }
 
 export async function selectSummaries(budget) {
