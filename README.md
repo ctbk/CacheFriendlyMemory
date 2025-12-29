@@ -49,9 +49,38 @@ Access settings in the Extensions menu under "CacheFriendlyMemory":
 - **Level 2 Chunk Size**: Summaries per long-term summary (default: 5)
 - **Target Compression**: Target compression ratio (default: 55%)
 - **Compression Model**: Connection profile for summarization
-- **Compression Preset**: Preset name for summarization
-- **Debug Mode**: Enable debug logging
-- **Show Progress Bar**: Display status bar in chat
+ - **Compression Preset**: Preset name for summarization
+ - **Enable Summary Injection**: Inject summaries into LLM context instead of raw messages
+ - **Debug Mode**: Enable debug logging
+ - **Show Progress Bar**: Display status bar in chat
+
+## Message-Based Tracking
+
+Extension now uses per-message metadata flags instead of internal counters:
+- Each message tracks its compression level (null|1|2|3)
+- Stats calculated dynamically from message flags
+- Summarized messages hidden from LLM context via generate interceptor
+- Summaries injected via extension prompts
+
+### Compression Levels
+
+- **Level 0** (null): Active, uncompressed messages
+- **Level 1**: Short-term summaries (10 messages → 1 summary)
+- **Level 2**: Long-term summaries (5 L1 summaries → 1 L2 summary)
+- **Level 3**: Ultra-compressed story summary
+
+### Message Metadata Structure
+
+```javascript
+message.extra = {
+    cacheFriendlyMemory: {
+        compressionLevel: null | 1 | 2 | 3,
+        summaryId: string | null,
+        included: boolean,
+        timestamp: number | null
+    }
+}
+```
 
 ## Compression Strategy
 

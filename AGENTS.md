@@ -6,7 +6,7 @@ This file provides guidelines for agentic coding assistants working on CacheFrie
 
 **Testing locally:**
 1. Install test dependencies: `npm install`
-2. Run tests: `npm test`
+2. Run tests: `npm test` (but remember that vitest uses watch mode by default, you should use run)
 3. Run tests with UI: `npm run test:ui`
 4. Run tests with coverage: `npm run test:coverage`
 5. Place extension in `public/scripts/extensions/third-party/CacheFriendlyMemory/`
@@ -100,6 +100,45 @@ export function setGlobalSetting(key, value) {
     saveSettingsDebounced();
 }
 ```
+
+### Message Metadata
+Extension uses `message.extra.cacheFriendlyMemory` for per-message tracking:
+
+```javascript
+message.extra = {
+    cacheFriendlyMemory: {
+        compressionLevel: null | 1 | 2 | 3,
+        summaryId: string | null,
+        included: boolean,
+        timestamp: number | null
+    }
+}
+```
+
+Use `import { getCompressionLevel, markMessageSummarized } from './src/message-metadata.js'` to access message metadata functions:
+
+```javascript
+import {
+    getCompressionLevel,
+    markMessageSummarized,
+    markMessageActive,
+    countMessagesByLevel
+} from './message-metadata.js';
+
+// Check compression level
+const level = getCompressionLevel(message); // Returns null | 1 | 2 | 3
+
+// Mark message as summarized
+markMessageSummarized(message, 1, 'summary-123');
+
+// Mark message as active (not summarized)
+markMessageActive(message);
+
+// Count messages by level
+const counts = countMessagesByLevel(chat);
+// Returns: { total: 100, level0: 70, level1: 20, level2: 10, level3: 0 }
+```
+
 
 ### UI Components
 Use document fragments for DOM manipulation, template strings for HTML (sanitize user input), bind events with `onchange`, `onclick` handlers, use CSS classes from `ui/style.css`.

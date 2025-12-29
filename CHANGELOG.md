@@ -32,5 +32,28 @@ All notable changes to CacheFriendlyMemory will be documented in this file.
 - Per-chat and global settings storage
 - Settings UI panel
 - Export/import functionality
-- Status display
-- Slash commands: `/cfm-compact`, `/cfm-status`, `/cfm-export`
+ - Status display
+ - Slash commands: `/cfm-compact`, `/cfm-status`, `/cfm-export`
+
+## [0.2.0] - 2025-12-29
+
+### Added
+- Message-based tracking system using per-message metadata flags
+- Extension prompt injection for summaries
+- Generate interceptor to filter summarized messages from LLM context
+- Injection toggle in settings
+- Comprehensive unit and integration tests
+- Dynamic stats calculation from message flags
+
+### Changed
+- Removed internal message counters
+- Rewrote events module to use message flags
+- Updated compaction to mark messages instead of tracking counters
+- Status display now uses dynamic counting
+
+### Technical
+- Storage structure updated to include injection config
+- Stats calculated dynamically from message metadata
+- No migration needed - fresh start for new chats
+- Coverage target: 80% for all new modules
+
