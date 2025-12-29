@@ -2,6 +2,7 @@ import { getChatStorage, saveChatStorage, getGlobalSetting } from './storage.js'
 import { getContext } from '../../../../extensions.js';
 import { generateQuietPrompt } from '../../../../../script.js';
 import { estimateTokenCount } from './logic/token-estimation.js';
+import { shouldTriggerCompaction } from './logic/compaction-triggers.js';
 
 export async function triggerCompaction() {
     const storage = getChatStorage();
@@ -16,20 +17,13 @@ export async function triggerCompaction() {
     const contextThreshold = getGlobalSetting('contextThreshold');
     const autoCompact = getGlobalSetting('autoCompact');
 
-    if (!autoCompact) {
-        return false;
-    }
-
     const unsummarizedCount = storage.stats.totalMessages - storage.stats.summarizedMessages;
     const contextSize = context.maxContextTokens || 0;
     const currentContext = context.contextTokens || 0;
-    const contextPercentage = contextSize > 0 ? (currentContext / contextSize) * 100 : 0;
 
-    if (unsummarizedCount >= compactThreshold || contextPercentage >= contextThreshold) {
-        return true;
-    }
-
-    return false;
+    return shouldTriggerCompaction(unsummarizedCount, contextSize,
+                                     currentContext, compactThreshold,
+                                     contextThreshold, autoCompact);
 }
 
 export async function performCompaction() {
