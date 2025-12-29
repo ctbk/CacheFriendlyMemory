@@ -1,91 +1,91 @@
-import { getChatStorage, getGlobalSetting } from './storage.js';
-import { getContext } from '../../../../extensions.js';
-import { estimateTokenCount } from './logic/token-estimation.js';
-import { selectLevel1Summaries, selectLevel2Summaries } from './logic/summary-selection.js';
-import { calculateBudget as calculateBudgetPure } from './logic/budget-calculation.js';
-import { buildContextFromSummaries } from './logic/context-building.js';
+import { getContext, extension_prompt_types, setExtensionPrompt } from '../../../../script.js';
+import { getChatStorage } from './storage.js';
 
-export async function calculateBudget() {
-    const context = getContext();
+const EXTENSION_NAME = 'cacheFriendlyMemory';
 
-    const maxContextTokens = context.maxContextTokens || 0;
-    const currentContextTokens = context.contextTokens || 0;
-    const systemPromptTokens = context.systemPromptTokens || 0;
-    const characterPromptTokens = context.characterPromptTokens || 0;
-
-    return calculateBudgetPure(maxContextTokens, currentContextTokens,
-                                systemPromptTokens, characterPromptTokens);
-}
-
-export async function selectSummaries(budget) {
+function collectSummaries() {
     const storage = getChatStorage();
-    if (!storage) {
-        return { level0: [], level1: [], level2: [], level3: null };
+    if (!storage) return '';
+
+    const lines = [];
+    lines.push('[Compressed Conversation History]');
+    lines.push('');
+
+    if (storage.level3?.summary) {
+        lines.push('[Long-term Summary]');
+        lines.push(storage.level3.summary);
+        lines.push('');
     }
 
-    const context = getContext();
-    const chat = context.chat;
-    const rawMessageCount = 20;
-
-    const recentMessages = chat.slice(-rawMessageCount);
-    const recentMessagesTokens = recentMessages.reduce((sum, m) => sum + estimateTokenCount(m.mes), 0);
-
-    let remainingBudget = budget.budgetForHistory - recentMessagesTokens;
-
-    if (remainingBudget <= 0) {
-        return { level0: recentMessages, level1: [], level2: [], level3: null };
+    if (storage.level2?.summaries?.length > 0) {
+        lines.push('[Medium-term Summaries]');
+        for (let i = 0; i < storage.level2.summaries.length; i++) {
+            const summary = storage.level2.summaries[i];
+            lines.push(`[Section ${i + 1}] ${summary.text}`);
+        }
+        lines.push('');
     }
 
-    const level1Summaries = selectLevel1Summaries(storage.level1.summaries, remainingBudget);
-    const usedLevel1Tokens = level1Summaries.reduce((sum, s) => sum + s.tokenCount, 0);
-
-    remainingBudget -= usedLevel1Tokens;
-
-    let level2Summaries = [];
-    if (remainingBudget > 0) {
-        level2Summaries = selectLevel2Summaries(storage.level2.summaries, remainingBudget);
+    if (storage.level1?.summaries?.length > 0) {
+        lines.push('[Recent Summaries]');
+        for (let i = 0; i < storage.level1.summaries.length; i++) {
+            const summary = storage.level1.summaries[i];
+            lines.push(`[Chapter ${i + 1}] ${summary.text}`);
+        }
+        lines.push('');
     }
 
-    const usedLevel2Tokens = level2Summaries.reduce((sum, s) => sum + s.tokenCount, 0);
+    lines.push('[End Compressed History]');
 
-    let level3Summary = null;
-    if (remainingBudget - usedLevel2Tokens > 0 && storage.level3.summary) {
-        level3Summary = storage.level3.summary;
-    }
-
-    return {
-        level0: recentMessages,
-        level1: level1Summaries,
-        level2: level2Summaries,
-        level3: level3Summary,
-    };
+    return lines.join('\n');
 }
 
-// Removed buildContextFromSummaries - now imported from logic/context-building.js
+export async function injectSummaries() {
+    const storage = getChatStorage();
+    if (!storage || !storage.injection?.enabled) {
+        try {
+            setExtensionPrompt(EXTENSION_NAME, '', extension_prompt_types.IN_CHAT, 0);
+        } catch (error) {
+            console.warn('[CacheFriendlyMemory] Failed to clear injection:', error);
+        }
+        return;
     }
 
-    return selected.reverse();
+    const summaryText = collectSummaries();
+
+    if (!summaryText) {
+        try {
+            setExtensionPrompt(EXTENSION_NAME, '', extension_prompt_types.IN_CHAT, 0);
+        } catch (error) {
+            console.warn('[CacheFriendlyMemory] Failed to clear injection:', error);
+        }
+        return;
+    }
+
+    try {
+        setExtensionPrompt(
+            EXTENSION_NAME,
+            summaryText,
+            storage.injection.position || extension_prompt_types.IN_CHAT,
+            storage.injection.depth || 0,
+            storage.injection.scan !== false,
+            storage.injection.role || 'system'
+        );
+        console.log('[CacheFriendlyMemory] Summaries injected into context');
+    } catch (error) {
+        console.error('[CacheFriendlyMemory] Failed to inject summaries:', error);
+    }
 }
 
-// Removed selectLevel2Summaries - now imported from logic/summary-selection.js
-
-    if (selected.level2.length > 0) {
-        contextParts.push('[Previous Chapters]');
-        selected.level2.forEach(s => {
-            contextParts.push(s.text);
-        });
-        contextParts.push('');
-    }
-
-    if (selected.level1.length > 0) {
-        contextParts.push('[Recent Events]');
-        selected.level1.forEach(s => {
-            contextParts.push(s.text);
-        });
-        contextParts.push('');
-    }
-
-    return contextParts.join('\n');
+export async function updateInjection() {
+    await injectSummaries();
 }
 
-// Removed duplicate estimateTokenCount - now imported from logic/token-estimation.js
+export async function clearInjection() {
+    try {
+        setExtensionPrompt(EXTENSION_NAME, '', extension_prompt_types.IN_CHAT, 0);
+        console.log('[CacheFriendlyMemory] Injection cleared');
+    } catch (error) {
+        console.error('[CacheFriendlyMemory] Failed to clear injection:', error);
+    }
+}
