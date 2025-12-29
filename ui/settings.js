@@ -125,6 +125,19 @@ function bindUIElements() {
             console.error(`[${extensionName}] Error restoring defaults:`, error);
         }
     });
+
+    $('#cfm-injection-enabled').on('change', async function() {
+        const { getInjectionSetting, setInjectionSetting } = await import('../src/storage.js');
+        const { injectSummaries, clearInjection } = await import('../src/injection.js');
+
+        await setInjectionSetting('enabled', $(this).is(':checked'));
+
+        if ($(this).is(':checked')) {
+            await injectSummaries();
+        } else {
+            await clearInjection();
+        }
+    });
 }
 
 function updateUI() {
@@ -146,6 +159,11 @@ function updateUI() {
     $('#cfm_targetCompression').val(settings.targetCompression);
     $('#cfm_compressionModel').val(settings.compressionModel);
     $('#cfm_compressionPreset').val(settings.compressionPreset);
+
+    const storage = getChatStorage();
+    if (storage) {
+        $('#cfm-injection-enabled').prop('checked', storage.injection?.enabled ?? true);
+    }
 }
 
 function refreshStatus() {
