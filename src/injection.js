@@ -1,7 +1,7 @@
 import { getChatStorage, getGlobalSetting } from './storage.js';
 import { getContext } from '../../../../extensions.js';
 import { estimateTokenCount } from './logic/token-estimation.js';
-import { selectLevel1Summaries } from './logic/summary-selection.js';
+import { selectLevel1Summaries, selectLevel2Summaries } from './logic/summary-selection.js';
 
 export async function calculateBudget() {
     const context = getContext();
@@ -88,12 +88,7 @@ function selectLevel2Summaries(summaries, budget) {
     return selected.reverse();
 }
 
-export function buildContextFromSummaries(selected) {
-    const contextParts = [];
-
-    if (selected.level3) {
-        contextParts.push(`[Story So Far]\n${selected.level3}\n`);
-    }
+// Removed selectLevel2Summaries - now imported from logic/summary-selection.js
 
     if (selected.level2.length > 0) {
         contextParts.push('[Previous Chapters]');
