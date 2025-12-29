@@ -170,21 +170,31 @@ function refreshStatus() {
     const storage = getChatStorage();
 
     if (storage) {
-        const unsummarized = storage.stats.totalMessages - storage.stats.summarizedMessages;
-        
-        $('#cfm_stat_totalMessages').text(storage.stats.totalMessages);
-        $('#cfm_stat_summarizedMessages').text(storage.stats.summarizedMessages);
-        $('#cfm_stat_unsummarizedMessages').text(unsummarized);
-        $('#cfm_stat_compressionRatio').text((storage.stats.currentCompressionRatio * 100).toFixed(1));
-        
-        if (storage.stats.lastCompactTime) {
-            $('#cfm_stat_lastCompactTime').text(new Date(storage.stats.lastCompactTime).toLocaleString());
-        } else {
-            $('#cfm_stat_lastCompactTime').text('Never');
-        }
-        
-        $('#cfm_stat_level1Count').text(storage.level1.summaries.length);
-        $('#cfm_stat_level2Count').text(storage.level2.summaries.length);
+        import('../src/message-metadata.js').then(({ countMessagesByLevel }) => {
+            const context = getContext();
+            const chat = context.chat || [];
+            const counts = countMessagesByLevel(chat);
+            const unsummarized = counts.level0;
+            const summarized = counts.level1 + counts.level2 + counts.level3;
+
+            $('#cfm_stat_totalMessages').text(counts.total);
+            $('#cfm_stat_summarizedMessages').text(summarized);
+            $('#cfm_stat_unsummarizedMessages').text(unsummarized);
+
+            const ratio = storage.stats?.currentCompressionRatio ? (storage.stats.currentCompressionRatio * 100).toFixed(1) : '0.0';
+            $('#cfm_stat_compressionRatio').text(ratio);
+
+            if (storage.stats.lastCompactTime) {
+                $('#cfm_stat_lastCompactTime').text(new Date(storage.stats.lastCompactTime).toLocaleString());
+            } else {
+                $('#cfm_stat_lastCompactTime').text('Never');
+            }
+
+            $('#cfm_stat_level1Count').text(storage.level1.summaries.length);
+            $('#cfm_stat_level2Count').text(storage.level2.summaries.length);
+        }).catch(err => {
+            console.warn('[CacheFriendlyMemory] Failed to refresh status:', err);
+        });
     } else {
         $('#cfm_status').html('<p>No chat loaded</p>');
     }

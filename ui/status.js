@@ -23,6 +23,7 @@ export function createStatusBar() {
 
 export function updateStatusBar(statusBar) {
     const storage = getChatStorage();
+    const context = getContext();
 
     if (!storage) {
         statusBar.style.display = 'none';
@@ -38,14 +39,21 @@ export function updateStatusBar(statusBar) {
 
     statusBar.style.display = 'block';
 
-    const unsummarized = storage.stats.totalMessages - storage.stats.summarizedMessages;
-    const ratio = storage.stats.currentCompressionRatio * 100;
+    import('../src/message-metadata.js').then(({ countMessagesByLevel }) => {
+        const chat = context.chat || [];
+        const counts = countMessagesByLevel(chat);
+        const unsummarized = counts.level0;
+        const summarized = counts.level1 + counts.level2 + counts.level3;
+        const ratio = storage.stats?.currentCompressionRatio ? (storage.stats.currentCompressionRatio * 100).toFixed(1) : '0.0';
 
-    statusBar.innerHTML = `
-        <div>CacheFriendlyMemory: ${storage.stats.totalMessages} messages</div>
-        <div>Unsummarized: ${unsummarized}</div>
-        <div>Compression: ${ratio.toFixed(1)}%</div>
-    `;
+        statusBar.innerHTML = `
+            <div>CacheFriendlyMemory: ${counts.total} messages</div>
+            <div>Unsummarized: ${unsummarized}</div>
+            <div>Compression: ${ratio}%</div>
+        `;
+    }).catch(err => {
+        console.warn('[CacheFriendlyMemory] Failed to update status bar:', err);
+    });
 }
 
 export function hideStatusBar(statusBar) {
