@@ -1,6 +1,7 @@
 import { getChatStorage, saveChatStorage, getGlobalSetting } from './storage.js';
 import { getContext } from '../../../../extensions.js';
 import { generateQuietPrompt } from '../../../../../script.js';
+import { estimateTokenCount } from './logic/token-estimation.js';
 
 export async function triggerCompaction() {
     const storage = getChatStorage();
@@ -129,6 +130,4 @@ function getChapterNumber() {
     return storage.level1.summaries.length + 1;
 }
 
-function estimateTokenCount(text) {
-    return Math.ceil(text.length / 4);
-}
+// Removed duplicate estimateTokenCount - now imported from logic/token-estimation.js
