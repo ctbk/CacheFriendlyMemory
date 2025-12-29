@@ -4,13 +4,15 @@ This file provides guidelines for agentic coding assistants working on CacheFrie
 
 ## Build, Lint, and Test Commands
 
-Currently, this extension uses pure JavaScript ES modules with no build pipeline or testing framework.
-
 **Testing locally:**
-1. Place the extension in `public/scripts/extensions/third-party/CacheFriendlyMemory/`
-2. Reload SillyTavern (the extension will auto-load)
-3. Test functionality through the UI and slash commands
-4. Check browser console for errors and debug messages
+1. Install test dependencies: `npm install`
+2. Run tests: `npm test`
+3. Run tests with UI: `npm run test:ui`
+4. Run tests with coverage: `npm run test:coverage`
+5. Place extension in `public/scripts/extensions/third-party/CacheFriendlyMemory/`
+6. Reload SillyTavern (the extension will auto-load)
+7. Test functionality through the UI and slash commands
+8. Check browser console for errors and debug messages
 
 **Debug mode:** Enable "Debug Mode" in settings for verbose console logging prefixed with `[CacheFriendlyMemory]`
 
@@ -155,3 +157,42 @@ When implementing features:
 6. Verify storage persists across page reloads
 7. Test slash commands manually
 8. Verify UI controls function correctly
+
+## Test-Driven Development (TDD)
+
+**TDD Workflow:**
+1. Write a failing test for new functionality
+2. Run the test to verify it fails
+3. Write minimal code to make the test pass
+4. Run the test to verify it passes
+5. Refactor if needed
+6. Commit the changes
+
+**Test Structure:**
+- `tests/unit/` - Pure function unit tests (fast, no dependencies)
+- `tests/integration/` - Workflow integration tests (slower, test complete flows)
+- `tests/fixtures/` - Mock objects and test data
+- `tests/setup.js` - Global test configuration
+
+**Coverage Target:** 80% for all logic modules in `src/logic/`
+
+**Writing Tests:**
+- Use Vitest with describe/it/expect syntax
+- Test happy path and edge cases
+- Mock external dependencies (SillyTavern APIs)
+- Keep tests independent and deterministic
+- Follow AAA pattern: Arrange, Act, Assert
+
+**Example:**
+```javascript
+describe('functionName', () => {
+    it('should do X when Y', () => {
+        // Arrange
+        const input = 'test';
+        // Act
+        const result = functionName(input);
+        // Assert
+        expect(result).toBe('expected');
+    });
+});
+```
