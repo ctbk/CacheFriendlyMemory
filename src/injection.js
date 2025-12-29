@@ -1,5 +1,6 @@
 import { getChatStorage, getGlobalSetting } from './storage.js';
 import { getContext } from '../../../../extensions.js';
+import { estimateTokenCount } from './logic/token-estimation.js';
 
 export async function calculateBudget() {
     const context = getContext();
@@ -128,6 +129,4 @@ export function buildContextFromSummaries(selected) {
     return contextParts.join('\n');
 }
 
-function estimateTokenCount(text) {
-    return Math.ceil(text.length / 4);
-}
+// Removed duplicate estimateTokenCount - now imported from logic/token-estimation.js
