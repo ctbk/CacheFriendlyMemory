@@ -23,11 +23,13 @@ export function getMessageMetadata(message, key) {
 }
 
 export function isMessageSummarized(message) {
-    return getMessageMetadata(message, 'compressionLevel') !== null;
+    const level = getMessageMetadata(message, 'compressionLevel');
+    return level !== null && level !== undefined;
 }
 
 export function getCompressionLevel(message) {
-    return getMessageMetadata(message, 'compressionLevel');
+    const level = getMessageMetadata(message, 'compressionLevel');
+    return level ?? null;
 }
 
 export function markMessageSummarized(message, level, summaryId) {

@@ -50,7 +50,7 @@ describe('Injection Module', () => {
 
             await injectSummaries();
 
-            expect(mockSetExtensionPrompt).toHaveBeenCalledWith('cacheFriendlyMemory', '', 0);
+            expect(mockSetExtensionPrompt).toHaveBeenCalledWith('cacheFriendlyMemory', '', 0, 0);
         });
 
         it('should handle null storage gracefully', async () => {
@@ -114,7 +114,14 @@ describe('Injection Module', () => {
 
             await injectSummaries();
 
-            expect(mockSetExtensionPrompt).toHaveBeenCalledWith('cacheFriendlyMemory', '', 0);
+            expect(mockSetExtensionPrompt).toHaveBeenCalledWith(
+                'cacheFriendlyMemory',
+                expect.stringContaining('[Compressed Conversation History]'),
+                0,
+                0,
+                true,
+                'system'
+            );
         });
     });
 
@@ -122,7 +129,7 @@ describe('Injection Module', () => {
         it('should clear extension prompt', async () => {
             await clearInjection();
 
-            expect(mockSetExtensionPrompt).toHaveBeenCalledWith('cacheFriendlyMemory', '', 0);
+            expect(mockSetExtensionPrompt).toHaveBeenCalledWith('cacheFriendlyMemory', '', 0, 0);
         });
     });
 });

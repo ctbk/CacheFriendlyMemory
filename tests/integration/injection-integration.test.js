@@ -33,7 +33,7 @@ describe('Injection Integration', () => {
 
         expect(mockSetExtensionPrompt).toHaveBeenCalledWith(
             'cacheFriendlyMemory',
-            expect.stringContaining('[Chapter 1 summary]'),
+            expect.stringContaining('[Chapter 1] Chapter 1 summary'),
             0,
             0,
             true,
@@ -50,13 +50,13 @@ describe('Injection Integration', () => {
 
         await injectSummaries();
 
-        expect(mockSetExtensionPrompt).toHaveBeenCalledWith('cacheFriendlyMemory', '', 0);
+        expect(mockSetExtensionPrompt).toHaveBeenCalledWith('cacheFriendlyMemory', '', 0, 0);
     });
 
     it('should clear injection explicitly', async () => {
         await clearInjection();
 
-        expect(mockSetExtensionPrompt).toHaveBeenCalledWith('cacheFriendlyMemory', '', 0);
+        expect(mockSetExtensionPrompt).toHaveBeenCalledWith('cacheFriendlyMemory', '', 0, 0);
     });
 
     it('should inject multi-level summaries', async () => {

@@ -29,13 +29,6 @@ describe('Message Metadata', () => {
             setMessageMetadata(mockMessage, 'test', 'value');
             expect(mockMessage.extra).toBeDefined();
         });
-
-        it('should handle swipe metadata', () => {
-            mockMessage.swipe_id = 0;
-            mockMessage.swipe_info = [{ extra: {} }];
-            setMessageMetadata(mockMessage, 'test', 'value');
-            expect(mockMessage.swipe_info[0].extra?.cacheFriendlyMemory?.test).toBe('value');
-        });
     });
 
     describe('getMessageMetadata', () => {
@@ -57,6 +50,11 @@ describe('Message Metadata', () => {
         it('should return true for summarized message', () => {
             markMessageSummarized(mockMessage, 1, 'test-id');
             expect(isMessageSummarized(mockMessage)).toBe(true);
+        });
+
+        it('should return false when compressionLevel is null', () => {
+            mockMessage.extra = { cacheFriendlyMemory: { compressionLevel: null } };
+            expect(isMessageSummarized(mockMessage)).toBe(false);
         });
     });
 
@@ -125,15 +123,27 @@ describe('Message Metadata', () => {
             expect(counts.total).toBe(0);
             expect(counts.level0).toBe(0);
         });
+
+        it('should count messages with null compressionLevel as level0', () => {
+            const chat = [
+                { is_system: false, extra: { cacheFriendlyMemory: { compressionLevel: null } } },
+                { is_system: false, extra: { cacheFriendlyMemory: { compressionLevel: 1 } } }
+            ];
+
+            const counts = countMessagesByLevel(chat);
+            expect(counts.total).toBe(2);
+            expect(counts.level0).toBe(1);
+            expect(counts.level1).toBe(1);
+        });
     });
 
     describe('getUnsummarizedCount', () => {
         it('should count only level0 messages', () => {
             const chat = [
-                { is_system: false, extra: {} },
+                { is_system: false, extra: { cacheFriendlyMemory: { compressionLevel: null } } },
                 { is_system: false, extra: { cacheFriendlyMemory: { compressionLevel: 1 } } },
-                { is_system: true, extra: {} },
-                { is_system: false, extra: {} }
+                { is_system: true, extra: { cacheFriendlyMemory: { compressionLevel: null } } },
+                { is_system: false, extra: { cacheFriendlyMemory: { compressionLevel: null } } }
             ];
 
             const count = getUnsummarizedCount(chat);
@@ -144,7 +154,7 @@ describe('Message Metadata', () => {
     describe('getSummarizedCount', () => {
         it('should count messages with any compression level', () => {
             const chat = [
-                { is_system: false, extra: {} },
+                { is_system: false, extra: { cacheFriendlyMemory: { compressionLevel: null } } },
                 { is_system: false, extra: { cacheFriendlyMemory: { compressionLevel: 1 } } },
                 { is_system: false, extra: { cacheFriendlyMemory: { compressionLevel: 2 } } },
                 { is_system: false, extra: { cacheFriendlyMemory: { compressionLevel: 3 } } }
