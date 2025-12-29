@@ -2,6 +2,26 @@
 
 All notable changes to CacheFriendlyMemory will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- TDD infrastructure with Vitest testing framework
+- Unit tests for all logic modules (100% coverage)
+- Integration tests for compaction and injection workflows
+- Test fixtures for SillyTavern API mocks
+- Comprehensive testing documentation
+- Coverage reporting with 80% target
+
+### Changed
+- Extracted pure functions from compression.js and injection.js
+- Refactored token estimation, summary selection, budget calculation
+- Refactored context building and compaction triggers
+- Improved testability through dependency injection
+
+### Technical Debt
+- Remaining code in storage.js, events.js, and index.js still coupled to SillyTavern APIs
+- Future: Extract service layer for full test coverage
+
 ## [0.1.0] - 2025-12-27
 
 ### Added
