@@ -25,7 +25,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>0/48</span>
+                <span class='fraction'>0/68</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">0% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>0/48</span>
+                <span class='fraction'>0/68</span>
             </div>
         
             
@@ -111,7 +111,47 @@
 <a name='L46'></a><a href='#L46'>46</a>
 <a name='L47'></a><a href='#L47'>47</a>
 <a name='L48'></a><a href='#L48'>48</a>
-<a name='L49'></a><a href='#L49'>49</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
@@ -160,52 +200,72 @@
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-no">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { eventSource, event_types } from '../../../../../script.js';</span></span></span>
+<span class="cstat-no" title="statement not covered" >import { getChatStorage, saveChatStorage } from './storage.js';</span>
+<span class="cstat-no" title="statement not covered" >import { markMessageActive } from './message-metadata.js';</span>
+<span class="cstat-no" title="statement not covered" >import { triggerCompaction, performCompaction } from './compression.js';</span>
+<span class="cstat-no" title="statement not covered" >import { injectSummaries, clearInjection } from './injection.js';</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >export function registerExtensionEvents() {</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    eventSource.on(event_types.CHAT_CHANGED, async () =&gt; {</span>
 <span class="cstat-no" title="statement not covered" >        console.log('[CacheFriendlyMemory] Chat changed event');</span>
-<span class="cstat-no" title="statement not covered" >        const { getChatStorage } = await import('./storage.js');</span>
 <span class="cstat-no" title="statement not covered" >        getChatStorage();</span>
+<span class="cstat-no" title="statement not covered" >        await injectSummaries();</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >    eventSource.on(event_types.MESSAGE_RECEIVED, async () =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >        console.log('[CacheFriendlyMemory] Message received event');</span>
-<span class="cstat-no" title="statement not covered" >        const { getChatStorage } = await import('./storage.js');</span>
+<span class="cstat-no" title="statement not covered" >    eventSource.on(event_types.MESSAGE_RECEIVED, async (mesId) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        console.log('[CacheFriendlyMemory] Message received event:', mesId);</span>
 <span class="cstat-no" title="statement not covered" >        const storage = getChatStorage();</span>
+<span class="cstat-no" title="statement not covered" >        if (!storage) return;</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >        if (storage) {</span>
-<span class="cstat-no" title="statement not covered" >            storage.stats.totalMessages++;</span>
+<span class="cstat-no" title="statement not covered" >        const context = getContext();</span>
+<span class="cstat-no" title="statement not covered" >        const message = context.chat?.[mesId];</span>
+<span class="cstat-no" title="statement not covered" >        if (message) {</span>
+<span class="cstat-no" title="statement not covered" >            markMessageActive(message);</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >        if (await triggerCompaction()) {</span>
+<span class="cstat-no" title="statement not covered" >            await performCompaction();</span>
+<span class="cstat-no" title="statement not covered" >            await saveChatStorage();</span>
+<span class="cstat-no" title="statement not covered" >            await injectSummaries();</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >    eventSource.on(event_types.USER_MESSAGE_RENDERED, async () =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >        console.log('[CacheFriendlyMemory] User message rendered event');</span>
-<span class="cstat-no" title="statement not covered" >        const { getChatStorage } = await import('./storage.js');</span>
-<span class="cstat-no" title="statement not covered" >        const storage = getChatStorage();</span>
-<span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >        if (storage) {</span>
-<span class="cstat-no" title="statement not covered" >            storage.stats.totalMessages++;</span>
+<span class="cstat-no" title="statement not covered" >    eventSource.on(event_types.USER_MESSAGE_RENDERED, async (mesId) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        console.log('[CacheFriendlyMemory] User message rendered event:', mesId);</span>
+<span class="cstat-no" title="statement not covered" >        const context = getContext();</span>
+<span class="cstat-no" title="statement not covered" >        const message = context.chat?.[mesId];</span>
+<span class="cstat-no" title="statement not covered" >        if (message) {</span>
+<span class="cstat-no" title="statement not covered" >            markMessageActive(message);</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >    eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, async () =&gt; {</span>
-<span class="cstat-no" title="statement not covered" >        console.log('[CacheFriendlyMemory] Character message rendered event');</span>
-<span class="cstat-no" title="statement not covered" >        const { getChatStorage } = await import('./storage.js');</span>
-<span class="cstat-no" title="statement not covered" >        const storage = getChatStorage();</span>
+<span class="cstat-no" title="statement not covered" >    eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, async (mesId) =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        console.log('[CacheFriendlyMemory] Character message rendered event:', mesId);</span>
+<span class="cstat-no" title="statement not covered" >        const context = getContext();</span>
+<span class="cstat-no" title="statement not covered" >        const message = context.chat?.[mesId];</span>
+<span class="cstat-no" title="statement not covered" >        if (message) {</span>
+<span class="cstat-no" title="statement not covered" >            markMessageActive(message);</span>
+<span class="cstat-no" title="statement not covered" >        }</span>
+<span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" ></span>
-<span class="cstat-no" title="statement not covered" >        if (storage) {</span>
-<span class="cstat-no" title="statement not covered" >            storage.stats.totalMessages++;</span>
+<span class="cstat-no" title="statement not covered" >    eventSource.on(event_types.GENERATION_AFTER_COMMANDS, async () =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >        console.log('[CacheFriendlyMemory] Generation after commands event');</span>
+<span class="cstat-no" title="statement not covered" >        const storage = getChatStorage();</span>
+<span class="cstat-no" title="statement not covered" >        if (storage?.injection?.enabled) {</span>
+<span class="cstat-no" title="statement not covered" >            await injectSummaries();</span>
 <span class="cstat-no" title="statement not covered" >        }</span>
 <span class="cstat-no" title="statement not covered" >    });</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 <span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >export function unregisterExtensionEvents() {</span>
-<span class="cstat-no" title="statement not covered" ></span>
 <span class="cstat-no" title="statement not covered" >    eventSource.removeListener(event_types.CHAT_CHANGED);</span>
 <span class="cstat-no" title="statement not covered" >    eventSource.removeListener(event_types.MESSAGE_RECEIVED);</span>
 <span class="cstat-no" title="statement not covered" >    eventSource.removeListener(event_types.USER_MESSAGE_RENDERED);</span>
 <span class="cstat-no" title="statement not covered" >    eventSource.removeListener(event_types.CHARACTER_MESSAGE_RENDERED);</span>
+<span class="cstat-no" title="statement not covered" >    eventSource.removeListener(event_types.GENERATION_AFTER_COMMANDS);</span>
+<span class="cstat-no" title="statement not covered" ></span>
+<span class="cstat-no" title="statement not covered" >    clearInjection();</span>
 <span class="cstat-no" title="statement not covered" >}</span>
 &nbsp;</pre></td></tr></table></pre>
 
@@ -214,7 +274,7 @@
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-12-29T09:24:59.760Z
+                at 2025-12-29T16:26:48.795Z
             </div>
         <script src="../../prettify.js"></script>
         <script>
