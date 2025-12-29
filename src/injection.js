@@ -1,6 +1,7 @@
 import { getChatStorage, getGlobalSetting } from './storage.js';
 import { getContext } from '../../../../extensions.js';
 import { estimateTokenCount } from './logic/token-estimation.js';
+import { selectLevel1Summaries } from './logic/summary-selection.js';
 
 export async function calculateBudget() {
     const context = getContext();
@@ -67,23 +68,7 @@ export async function selectSummaries(budget) {
     };
 }
 
-function selectLevel1Summaries(summaries, budget) {
-    if (summaries.length === 0) return [];
-
-    const sorted = [...summaries].sort((a, b) => b.timestamp - a.timestamp);
-    const selected = [];
-
-    let usedTokens = 0;
-
-    for (const summary of sorted) {
-        if (usedTokens + summary.tokenCount <= budget) {
-            selected.push(summary);
-            usedTokens += summary.tokenCount;
-        }
-    }
-
-    return selected.reverse();
-}
+// Removed selectLevel1Summaries - now imported from logic/summary-selection.js
 
 function selectLevel2Summaries(summaries, budget) {
     if (summaries.length === 0) return [];
