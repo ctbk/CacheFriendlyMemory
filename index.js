@@ -2,6 +2,9 @@ import { extension_settings, getContext } from '../../../extensions.js';
 import { eventSource, event_types, saveSettingsDebounced } from '../../../../script.js';
 import { extensionName, defaultSettings } from './src/constants.js';
 
+import { injectSummaries, clearInjection } from './src/injection.js';
+import { cacheFriendlyMemoryInterceptor } from './src/interceptor.js';
+
 let isInitialized = false;
 
 jQuery(() => {
@@ -43,18 +46,25 @@ async function registerEvents() {
     });
 
     eventSource.on(event_types.USER_MESSAGE_RENDERED, async (mesId) => {
+        const { getChatStorage, saveChatStorage } = await import('./src/storage.js');
+        const storage = getChatStorage();
+        if (!storage) return;
+
+        storage.stats.totalMessages++;
+        await saveChatStorage();
+        console.log(`[${extensionName}] User message rendered - totalMessages: ${storage.stats.totalMessages}, summarizedMessages: ${storage.stats.summarizedMessages}`);
+
         const { getGlobalSetting } = await import('./src/storage.js');
         const autoCompact = getGlobalSetting('autoCompact');
         const compactThreshold = getGlobalSetting('compactThreshold');
 
-        if (!autoCompact) return;
-
-        const { getChatStorage } = await import('./src/storage.js');
-        const storage = getChatStorage();
-
-        if (!storage) return;
+        if (!autoCompact) {
+            console.log(`[${extensionName}] Auto-compact disabled`);
+            return;
+        }
 
         const unsummarizedCount = storage.stats.totalMessages - storage.stats.summarizedMessages;
+        console.log(`[${extensionName}] Checking compaction: unsummarized=${unsummarizedCount}, threshold=${compactThreshold}`);
 
         if (unsummarizedCount >= compactThreshold) {
             console.log(`[${extensionName}] Triggering auto-compaction (${unsummarizedCount} messages)`);
@@ -64,18 +74,25 @@ async function registerEvents() {
     });
 
     eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, async (mesId) => {
+        const { getChatStorage, saveChatStorage } = await import('./src/storage.js');
+        const storage = getChatStorage();
+        if (!storage) return;
+
+        storage.stats.totalMessages++;
+        await saveChatStorage();
+        console.log(`[${extensionName}] Character message rendered - totalMessages: ${storage.stats.totalMessages}, summarizedMessages: ${storage.stats.summarizedMessages}`);
+
         const { getGlobalSetting } = await import('./src/storage.js');
         const autoCompact = getGlobalSetting('autoCompact');
         const compactThreshold = getGlobalSetting('compactThreshold');
 
-        if (!autoCompact) return;
-
-        const { getChatStorage } = await import('./src/storage.js');
-        const storage = getChatStorage();
-
-        if (!storage) return;
+        if (!autoCompact) {
+            console.log(`[${extensionName}] Auto-compact disabled`);
+            return;
+        }
 
         const unsummarizedCount = storage.stats.totalMessages - storage.stats.summarizedMessages;
+        console.log(`[${extensionName}] Checking compaction: unsummarized=${unsummarizedCount}, threshold=${compactThreshold}`);
 
         if (unsummarizedCount >= compactThreshold) {
             console.log(`[${extensionName}] Triggering auto-compaction (${unsummarizedCount} messages)`);
