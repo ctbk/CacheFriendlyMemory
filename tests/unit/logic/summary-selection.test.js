@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { selectLevel1Summaries } from '../../../src/logic/summary-selection.js';
+import { selectLevel1Summaries, selectLevel2Summaries } from '../../../src/logic/summary-selection.js';
 
 describe('selectLevel1Summaries', () => {
     it('should return empty array for no summaries', () => {
@@ -54,5 +54,35 @@ describe('selectLevel1Summaries', () => {
 
         expect(result[0].text).toBe('New');
         expect(result[1].text).toBe('Old');
+    });
+});
+
+describe('selectLevel2Summaries', () => {
+    it('should return empty array for no summaries', () => {
+        const result = selectLevel2Summaries([], 1000);
+        expect(result).toEqual([]);
+    });
+
+    it('should select summaries within budget', () => {
+        const summaries = [
+            { text: 'Old L2 summary', tokenCount: 200, timestamp: 1000 },
+            { text: 'New L2 summary', tokenCount: 200, timestamp: 2000 }
+        ];
+        const result = selectLevel2Summaries(summaries, 400);
+
+        expect(result).toHaveLength(2);
+        expect(result[0].text).toBe('New L2 summary');
+        expect(result[1].text).toBe('Old L2 summary');
+    });
+
+    it('should stop when budget is exceeded', () => {
+        const summaries = [
+            { text: 'Summary 1', tokenCount: 300, timestamp: 3000 },
+            { text: 'Summary 2', tokenCount: 250, timestamp: 2000 }
+        ];
+        const result = selectLevel2Summaries(summaries, 400);
+
+        expect(result).toHaveLength(1);
+        expect(result[0].text).toBe('Summary 1');
     });
 });
