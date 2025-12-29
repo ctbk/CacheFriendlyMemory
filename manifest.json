@@ -6,10 +6,11 @@
     "dependencies": [],
     "js": "index.js",
     "author": "Your Name",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "homePage": "https://github.com/ctbk/CacheFriendlyMemory",
     "auto_update": true,
     "minimum_client_version": "1.0.0",
+    "generate_interceptor": "cacheFriendlyMemoryInterceptor",
     "i18n": {
         "en": "i18n/en.json"
     }
