@@ -1,152 +1,173 @@
-import { getGlobalSetting, setGlobalSetting, getChatStorage, exportChatData, importChatData } from '../src/storage.js';
+import { extension_settings } from '../../../../extensions.js';
+import { extensionName, extensionFolderPath, defaultSettings } from '../src/constants.js';
+import { getGlobalSetting, setGlobalSetting, getChatStorage, exportChatData, importChatData, restoreDefaults } from '../src/storage.js';
 
-export function createSettingsPanel(container) {
-    const fragment = document.createDocumentFragment();
+export async function loadSettings() {
+    extension_settings[extensionName] = extension_settings[extensionName] || {};
+    
 
-    const header = document.createElement('h3');
-    header.textContent = 'CacheFriendlyMemory Settings';
-    fragment.appendChild(header);
+    Object.assign(extension_settings[extensionName], {
+        ...defaultSettings,
+        ...extension_settings[extensionName],
+    });
 
-    const form = document.createElement('div');
-    form.className = 'cfm-settings-form';
+    const settingsHtml = await $.get(`${extensionFolderPath}/templates/settings.html`);
+    $('#extensions_settings2').append(settingsHtml);
 
-    form.appendChild(createToggle('enabled', 'Enable Extension', true));
-    form.appendChild(createToggle('autoCompact', 'Auto Compact', true));
-    form.appendChild(createNumberInput('compactThreshold', 'Compact Threshold (messages)', 120, 10, 500));
-    form.appendChild(createNumberInput('contextThreshold', 'Context Threshold (%)', 75, 10, 95));
-    form.appendChild(createNumberInput('level1ChunkSize', 'Level 1 Chunk Size', 10, 5, 50));
-    form.appendChild(createNumberInput('level2ChunkSize', 'Level 2 Chunk Size', 5, 2, 20));
-    form.appendChild(createNumberInput('targetCompression', 'Target Compression (%)', 55, 10, 90));
-    form.appendChild(createTextInput('compressionModel', 'Compression Model', ''));
-    form.appendChild(createTextInput('compressionPreset', 'Compression Preset', ''));
-    form.appendChild(createToggle('debugMode', 'Debug Mode', false));
-    form.appendChild(createToggle('showProgressBar', 'Show Progress Bar', true));
+    bindUIElements();
 
-    fragment.appendChild(form);
+    updateUI();
 
-    const buttonsDiv = document.createElement('div');
-    buttonsDiv.className = 'cfm-buttons';
+    refreshStatus();
 
-    const compactButton = document.createElement('button');
-    compactButton.textContent = 'Compact Now';
-    compactButton.className = 'menu_button';
-    compactButton.onclick = async () => {
+    console.log(`[${extensionName}] Settings loaded`);
+}
+
+function bindUIElements() {
+    const settings = extension_settings[extensionName];
+
+    $('#cfm_enabled').on('change', function() {
+        settings.enabled = $(this).is(':checked');
+        setGlobalSetting('enabled', settings.enabled);
+    });
+
+    $('#cfm_autoCompact').on('change', function() {
+        settings.autoCompact = $(this).is(':checked');
+        setGlobalSetting('autoCompact', settings.autoCompact);
+    });
+
+    $('#cfm_debugMode').on('change', function() {
+        settings.debugMode = $(this).is(':checked');
+        setGlobalSetting('debugMode', settings.debugMode);
+    });
+
+    $('#cfm_showProgressBar').on('change', function() {
+        settings.showProgressBar = $(this).is(':checked');
+        setGlobalSetting('showProgressBar', settings.showProgressBar);
+    });
+
+    $('#cfm_compactThreshold').on('change', function() {
+        const value = parseInt($(this).val());
+        settings.compactThreshold = isNaN(value) ? 120 : value;
+        $(this).val(settings.compactThreshold);
+        setGlobalSetting('compactThreshold', settings.compactThreshold);
+    });
+
+    $('#cfm_contextThreshold').on('change', function() {
+        const value = parseInt($(this).val());
+        settings.contextThreshold = isNaN(value) ? 75 : value;
+        $(this).val(settings.contextThreshold);
+        setGlobalSetting('contextThreshold', settings.contextThreshold);
+    });
+
+    $('#cfm_level1ChunkSize').on('change', function() {
+        const value = parseInt($(this).val());
+        settings.level1ChunkSize = isNaN(value) ? 10 : value;
+        $(this).val(settings.level1ChunkSize);
+        setGlobalSetting('level1ChunkSize', settings.level1ChunkSize);
+    });
+
+    $('#cfm_level2ChunkSize').on('change', function() {
+        const value = parseInt($(this).val());
+        settings.level2ChunkSize = isNaN(value) ? 5 : value;
+        $(this).val(settings.level2ChunkSize);
+        setGlobalSetting('level2ChunkSize', settings.level2ChunkSize);
+    });
+
+    $('#cfm_targetCompression').on('change', function() {
+        const value = parseInt($(this).val());
+        settings.targetCompression = isNaN(value) ? 55 : value;
+        $(this).val(settings.targetCompression);
+        setGlobalSetting('targetCompression', settings.targetCompression);
+    });
+
+    $('#cfm_compressionModel').on('change', function() {
+        settings.compressionModel = $(this).val();
+        setGlobalSetting('compressionModel', settings.compressionModel);
+    });
+
+    $('#cfm_compressionPreset').on('change', function() {
+        settings.compressionPreset = $(this).val();
+        setGlobalSetting('compressionPreset', settings.compressionPreset);
+    });
+
+    $('#cfm_compact_btn').on('click', async () => {
         const { performCompaction } = await import('../src/compression.js');
         await performCompaction();
-        refreshStatus(container);
-    };
-    buttonsDiv.appendChild(compactButton);
+        refreshStatus();
+    });
 
-    const exportButton = document.createElement('button');
-    exportButton.textContent = 'Export Data';
-    exportButton.className = 'menu_button';
-    exportButton.onclick = () => exportChatData();
-    buttonsDiv.appendChild(exportButton);
+    $('#cfm_export_btn').on('click', () => {
+        exportChatData();
+    });
 
-    const importButton = document.createElement('button');
-    importButton.textContent = 'Import Data';
-    importButton.className = 'menu_button';
-    importButton.onclick = () => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'application/json';
-        input.onchange = (e) => {
+    $('#cfm_import_btn').on('click', () => {
+        const input = $('<input type="file" accept="application/json">');
+        input.on('change', (e) => {
             const file = e.target.files[0];
             const reader = new FileReader();
             reader.onload = (event) => {
                 importChatData(event.target.result);
             };
             reader.readAsText(file);
-        };
+        });
         input.click();
-    };
-    buttonsDiv.appendChild(importButton);
+    });
 
-    fragment.appendChild(buttonsDiv);
-
-    container.appendChild(fragment);
-
-    refreshStatus(container);
+    $('#cfm_restore_btn').on('click', async () => {
+        try {
+            const restored = await restoreDefaults();
+            if (restored) {
+                updateUI();
+                refreshStatus();
+            }
+        } catch (error) {
+            console.error(`[${extensionName}] Error restoring defaults:`, error);
+        }
+    });
 }
 
-function createToggle(key, label, defaultValue) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'cfm-setting-row';
+function updateUI() {
+    const settings = extension_settings[extensionName];
 
-    const labelEl = document.createElement('label');
-    labelEl.textContent = label;
-
-    const input = document.createElement('input');
-    input.type = 'checkbox';
-    input.checked = getGlobalSetting(key) ?? defaultValue;
-    input.onchange = () => setGlobalSetting(key, input.checked);
-
-    wrapper.appendChild(labelEl);
-    wrapper.appendChild(input);
-
-    return wrapper;
-}
-
-function createNumberInput(key, label, defaultValue, min, max) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'cfm-setting-row';
-
-    const labelEl = document.createElement('label');
-    labelEl.textContent = label;
-
-    const input = document.createElement('input');
-    input.type = 'number';
-    input.min = min;
-    input.max = max;
-    input.value = getGlobalSetting(key) ?? defaultValue;
-    input.onchange = () => setGlobalSetting(key, parseInt(input.value));
-
-    wrapper.appendChild(labelEl);
-    wrapper.appendChild(input);
-
-    return wrapper;
-}
-
-function createTextInput(key, label, defaultValue) {
-    const wrapper = document.createElement('div');
-    wrapper.className = 'cfm-setting-row';
-
-    const labelEl = document.createElement('label');
-    labelEl.textContent = label;
-
-    const input = document.createElement('input');
-    input.type = 'text';
-    input.value = getGlobalSetting(key) ?? defaultValue;
-    input.onchange = () => setGlobalSetting(key, input.value);
-
-    wrapper.appendChild(labelEl);
-    wrapper.appendChild(input);
-
-    return wrapper;
-}
-
-function refreshStatus(container) {
-    const storage = getChatStorage();
-
-    let statusDiv = container.querySelector('.cfm-status');
-    if (!statusDiv) {
-        statusDiv = document.createElement('div');
-        statusDiv.className = 'cfm-status';
-        container.appendChild(statusDiv);
+    if (settings?.debugMode) {
+        console.debug(`[${extensionName}] updateUI called with:`, JSON.stringify(settings, null, 2));
     }
 
+    $('#cfm_enabled').prop('checked', settings.enabled);
+    $('#cfm_autoCompact').prop('checked', settings.autoCompact);
+    $('#cfm_debugMode').prop('checked', settings.debugMode);
+    $('#cfm_showProgressBar').prop('checked', settings.showProgressBar);
+
+    $('#cfm_compactThreshold').val(settings.compactThreshold);
+    $('#cfm_contextThreshold').val(settings.contextThreshold);
+    $('#cfm_level1ChunkSize').val(settings.level1ChunkSize);
+    $('#cfm_level2ChunkSize').val(settings.level2ChunkSize);
+    $('#cfm_targetCompression').val(settings.targetCompression);
+    $('#cfm_compressionModel').val(settings.compressionModel);
+    $('#cfm_compressionPreset').val(settings.compressionPreset);
+}
+
+function refreshStatus() {
+    const storage = getChatStorage();
+
     if (storage) {
-        statusDiv.innerHTML = `
-            <h4>Current Status</h4>
-            <div>Total Messages: ${storage.stats.totalMessages}</div>
-            <div>Summarized: ${storage.stats.summarizedMessages}</div>
-            <div>Unsummarized: ${storage.stats.totalMessages - storage.stats.summarizedMessages}</div>
-            <div>Compression Ratio: ${(storage.stats.currentCompressionRatio * 100).toFixed(1)}%</div>
-            <div>Last Compact: ${storage.stats.lastCompactTime ? new Date(storage.stats.lastCompactTime).toLocaleString() : 'Never'}</div>
-            <div>Level 1 Summaries: ${storage.level1.summaries.length}</div>
-            <div>Level 2 Summaries: ${storage.level2.summaries.length}</div>
-        `;
+        const unsummarized = storage.stats.totalMessages - storage.stats.summarizedMessages;
+        
+        $('#cfm_stat_totalMessages').text(storage.stats.totalMessages);
+        $('#cfm_stat_summarizedMessages').text(storage.stats.summarizedMessages);
+        $('#cfm_stat_unsummarizedMessages').text(unsummarized);
+        $('#cfm_stat_compressionRatio').text((storage.stats.currentCompressionRatio * 100).toFixed(1));
+        
+        if (storage.stats.lastCompactTime) {
+            $('#cfm_stat_lastCompactTime').text(new Date(storage.stats.lastCompactTime).toLocaleString());
+        } else {
+            $('#cfm_stat_lastCompactTime').text('Never');
+        }
+        
+        $('#cfm_stat_level1Count').text(storage.level1.summaries.length);
+        $('#cfm_stat_level2Count').text(storage.level2.summaries.length);
     } else {
-        statusDiv.innerHTML = '<p>No chat loaded</p>';
+        $('#cfm_status').html('<p>No chat loaded</p>');
     }
 }

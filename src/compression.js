@@ -1,4 +1,6 @@
 import { getChatStorage, saveChatStorage, getGlobalSetting } from './storage.js';
+import { getContext } from '../../../../extensions.js';
+import { generateQuietPrompt } from '../../../../../script.js';
 
 export async function triggerCompaction() {
     const storage = getChatStorage();
@@ -7,7 +9,6 @@ export async function triggerCompaction() {
         return false;
     }
 
-    const { getContext } = SillyTavern.getContext();
     const context = getContext();
 
     const compactThreshold = getGlobalSetting('compactThreshold');
@@ -37,7 +38,8 @@ export async function performCompaction() {
         return;
     }
 
-    const { chat } = SillyTavern.getContext();
+    const context = getContext();
+    const chat = context.chat;
 
     const startIndex = storage.lastSummarizedIndex + 1;
     const messagesToCompact = chat.slice(startIndex);
@@ -97,7 +99,6 @@ export async function performCompaction() {
 }
 
 async function compressChunk(messages) {
-    const { generateQuietPrompt } = SillyTavern.getContext();
 
     const chapterNumber = getChapterNumber();
     const prompt = buildCompressionPrompt(messages, chapterNumber);

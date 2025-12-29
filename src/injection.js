@@ -1,7 +1,7 @@
 import { getChatStorage, getGlobalSetting } from './storage.js';
+import { getContext } from '../../../../extensions.js';
 
 export async function calculateBudget() {
-    const { getContext } = SillyTavern.getContext();
     const context = getContext();
 
     const maxContextTokens = context.maxContextTokens || 0;
@@ -28,7 +28,8 @@ export async function selectSummaries(budget) {
         return { level0: [], level1: [], level2: [], level3: null };
     }
 
-    const { chat } = SillyTavern.getContext();
+    const context = getContext();
+    const chat = context.chat;
     const rawMessageCount = 20;
 
     const recentMessages = chat.slice(-rawMessageCount);

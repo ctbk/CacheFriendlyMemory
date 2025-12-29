@@ -6,7 +6,7 @@ A SillyTavern extension that provides automatic, hierarchical context compressio
 
 - **Hierarchical Compression**: Progressive compression across 4 levels (raw → short-term → long-term → ultra-compressed)
 - **Auto-Compaction**: Automatically compresses when message count or context threshold is reached
-- **Cache-Friendly**: Maintains stable prompts to optimize prompt caching
+- **Cache-Friendly**: Maintains prompts stable to optimize caching
 - **Non-Destructive**: Original messages preserved, only marked as summarized
 - **Configurable**: User-adjustable thresholds, chunk sizes, and compression models
 - **Per-Chat Storage**: Data persists with chat file, follows branches
@@ -82,7 +82,7 @@ Level 3 (Distant Past)    → Ultra-compressed story summary
 
 ## License
 
-This extension is open-source. Choose an appropriate license for your distribution.
+This extension is open-source. 
 
 ## Contributing
 

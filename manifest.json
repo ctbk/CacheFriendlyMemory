@@ -1,14 +1,13 @@
 {
-    "display_name": "CacheFriendlyMemory",
+    "display_name": "Cache Friendly Memory",
     "loading_order": 100,
     "requires": [],
     "optional": [],
     "dependencies": [],
     "js": "index.js",
-    "css": "ui/style.css",
     "author": "Your Name",
     "version": "0.1.0",
-    "homePage": "https://github.com/your/CacheFriendlyMemory",
+    "homePage": "https://github.com/ctbk/CacheFriendlyMemory",
     "auto_update": true,
     "minimum_client_version": "1.0.0",
     "i18n": {

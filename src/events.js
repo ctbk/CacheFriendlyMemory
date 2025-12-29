@@ -1,5 +1,6 @@
+import { eventSource, event_types } from '../../../../../script.js';
+
 export function registerExtensionEvents() {
-    const { eventSource, event_types } = SillyTavern.getContext();
 
     eventSource.on(event_types.CHAT_CHANGED, async () => {
         console.log('[CacheFriendlyMemory] Chat changed event');
@@ -39,7 +40,6 @@ export function registerExtensionEvents() {
 }
 
 export function unregisterExtensionEvents() {
-    const { eventSource, event_types } = SillyTavern.getContext();
 
     eventSource.removeListener(event_types.CHAT_CHANGED);
     eventSource.removeListener(event_types.MESSAGE_RECEIVED);

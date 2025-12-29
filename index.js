@@ -1,55 +1,43 @@
-const MODULE_NAME = 'cacheFriendlyMemory';
-
-const defaultSettings = Object.freeze({
-    enabled: true,
-    autoCompact: true,
-    compactThreshold: 120,
-    contextThreshold: 75,
-    level1ChunkSize: 10,
-    level2ChunkSize: 5,
-    targetCompression: 55,
-    compressionModel: '',
-    compressionPreset: '',
-    debugMode: false,
-    showProgressBar: true,
-});
+import { extension_settings, getContext } from '../../../extensions.js';
+import { eventSource, event_types, saveSettingsDebounced } from '../../../../script.js';
+import { extensionName, defaultSettings } from './src/constants.js';
 
 let isInitialized = false;
 
-async function initModule() {
-    if (isInitialized) {
-        console.log(`[${MODULE_NAME}] Already initialized`);
-        return;
-    }
-
-    const { extensionSettings, saveSettingsDebounced } = SillyTavern.getContext();
-
-    extensionSettings[MODULE_NAME] = extensionSettings[MODULE_NAME] || structuredClone(defaultSettings);
-
-    for (const key of Object.keys(defaultSettings)) {
-        if (!Object.hasOwn(extensionSettings[MODULE_NAME], key)) {
-            extensionSettings[MODULE_NAME][key] = defaultSettings[key];
+jQuery(() => {
+    eventSource.on(event_types.APP_READY, async () => {
+        if (isInitialized) {
+            console.log(`[${extensionName}] Already initialized`);
+            return;
         }
-    }
 
-    console.log(`[${MODULE_NAME}] Module initialized`);
+        extension_settings[extensionName] = extension_settings[extensionName] || structuredClone(defaultSettings);
 
-    await registerEvents();
-    await registerSlashCommands();
-    await registerSettingsUI();
+        for (const key of Object.keys(defaultSettings)) {
+            if (!Object.hasOwn(extension_settings[extensionName], key)) {
+                extension_settings[extensionName][key] = defaultSettings[key];
+            }
+        }
 
-    isInitialized = true;
-}
+        console.log(`[${extensionName}] Module initialized`);
+
+        const { loadSettings } = await import('./ui/settings.js');
+        await loadSettings();
+
+        await registerEvents();
+        await registerSlashCommands();
+
+        isInitialized = true;
+    });
+});
 
 async function registerEvents() {
-    const { eventSource, event_types } = SillyTavern.getContext();
-
     eventSource.on(event_types.APP_READY, () => {
-        console.log(`[${MODULE_NAME}] App ready`);
+        console.log(`[${extensionName}] App ready`);
     });
 
     eventSource.on(event_types.CHAT_CHANGED, async () => {
-        console.log(`[${MODULE_NAME}] Chat changed`);
+        console.log(`[${extensionName}] Chat changed`);
         const { getChatStorage } = await import('./src/storage.js');
         getChatStorage();
     });
@@ -69,7 +57,7 @@ async function registerEvents() {
         const unsummarizedCount = storage.stats.totalMessages - storage.stats.summarizedMessages;
 
         if (unsummarizedCount >= compactThreshold) {
-            console.log(`[${MODULE_NAME}] Triggering auto-compaction (${unsummarizedCount} messages)`);
+            console.log(`[${extensionName}] Triggering auto-compaction (${unsummarizedCount} messages)`);
             const { performCompaction } = await import('./src/compression.js');
             await performCompaction();
         }
@@ -90,7 +78,7 @@ async function registerEvents() {
         const unsummarizedCount = storage.stats.totalMessages - storage.stats.summarizedMessages;
 
         if (unsummarizedCount >= compactThreshold) {
-            console.log(`[${MODULE_NAME}] Triggering auto-compaction (${unsummarizedCount} messages)`);
+            console.log(`[${extensionName}] Triggering auto-compaction (${unsummarizedCount} messages)`);
             const { performCompaction } = await import('./src/compression.js');
             await performCompaction();
         }
@@ -98,9 +86,11 @@ async function registerEvents() {
 }
 
 async function registerSlashCommands() {
-    const { SlashCommandParser, ARGUMENT_TYPE } = SillyTavern.getContext();
+    const context = getContext();
+    const parser = context.SlashCommandParser;
+    const command = context.SlashCommand;
 
-    SlashCommandParser.addCommandObject(SlashCommand.fromProps({
+    parser.addCommandObject(command.fromProps({
         name: 'cfm-compact',
         callback: async () => {
             const { performCompaction } = await import('./src/compression.js');
@@ -110,7 +100,7 @@ async function registerSlashCommands() {
         helpString: 'Manually trigger compaction of chat history',
     }));
 
-    SlashCommandParser.addCommandObject(SlashCommand.fromProps({
+    parser.addCommandObject(command.fromProps({
         name: 'cfm-status',
         callback: async () => {
             const { getChatStorage } = await import('./src/storage.js');
@@ -120,7 +110,7 @@ async function registerSlashCommands() {
         helpString: 'Show compression status and statistics',
     }));
 
-    SlashCommandParser.addCommandObject(SlashCommand.fromProps({
+    parser.addCommandObject(command.fromProps({
         name: 'cfm-export',
         callback: async () => {
             const { exportChatData } = await import('./src/storage.js');
@@ -130,14 +120,3 @@ async function registerSlashCommands() {
         helpString: 'Export chat compression data to JSON file',
     }));
 }
-
-async function registerSettingsUI() {
-    const { registerExtensionSettings } = SillyTavern.getContext();
-
-    registerExtensionSettings(MODULE_NAME, async (container) => {
-        const { createSettingsPanel } = await import('./ui/settings.js');
-        createSettingsPanel(container);
-    });
-}
-
-initModule();

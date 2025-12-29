@@ -1,0 +1,109 @@
+<div id="cfm_settings">
+    <div class="inline-drawer">
+        <div class="inline-drawer-toggle inline-drawer-header">
+            <b>CacheFriendlyMemory</b>
+            <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
+        </div>
+        <div class="inline-drawer-content">
+            <!-- Extension Toggles -->
+            <div class="flex-container flexGap10">
+                <label class="checkbox_label flex1">
+                    <input type="checkbox" id="cfm_enabled" />
+                    <span>Enable Extension</span>
+                </label>
+                <label class="checkbox_label flex1">
+                    <input type="checkbox" id="cfm_autoCompact" />
+                    <span>Auto Compact</span>
+                </label>
+            </div>
+
+            <hr>
+
+            <!-- Threshold Settings -->
+            <div class="flex-container">
+                <label class="flex1">
+                    <span>Compact Threshold (messages)</span>
+                    <input type="number" id="cfm_compactThreshold" class="text_pole margin0" min="10" max="500" />
+                </label>
+                <label class="flex1">
+                    <span>Context Threshold (%)</span>
+                    <input type="number" id="cfm_contextThreshold" class="text_pole margin0" min="10" max="95" />
+                </label>
+            </div>
+
+            <hr>
+
+            <!-- Chunk Settings -->
+            <div class="flex-container">
+                <label class="flex1">
+                    <span>Level 1 Chunk Size</span>
+                    <input type="number" id="cfm_level1ChunkSize" class="text_pole margin0" min="5" max="50" />
+                </label>
+                <label class="flex1">
+                    <span>Level 2 Chunk Size</span>
+                    <input type="number" id="cfm_level2ChunkSize" class="text_pole margin0" min="2" max="20" />
+                </label>
+            </div>
+
+            <hr>
+
+            <!-- Compression Settings -->
+            <label class="flex-container">
+                <span class="flex1">Target Compression (%)</span>
+                <input type="number" id="cfm_targetCompression" class="text_pole margin0" min="10" max="90" />
+            </label>
+            <label class="flex-container">
+                <span class="flex1">Compression Model</span>
+                <input type="text" id="cfm_compressionModel" class="text_pole margin0" />
+            </label>
+            <label class="flex-container">
+                <span class="flex1">Compression Preset</span>
+                <input type="text" id="cfm_compressionPreset" class="text_pole margin0" />
+            </label>
+
+            <hr>
+
+            <!-- Debug Settings -->
+            <div class="flex-container flexGap10">
+                <label class="checkbox_label flex1">
+                    <input type="checkbox" id="cfm_debugMode" />
+                    <span>Debug Mode</span>
+                </label>
+                <label class="checkbox_label flex1">
+                    <input type="checkbox" id="cfm_showProgressBar" />
+                    <span>Show Progress Bar</span>
+                </label>
+            </div>
+
+            <hr>
+
+            <!-- Action Buttons -->
+            <div class="flex-container flexGap10">
+                <button id="cfm_compact_btn" class="menu_button flex1">
+                    <i class="fa-solid fa-compress"></i> Compact Now
+                </button>
+                <button id="cfm_export_btn" class="menu_button flex1">
+                    <i class="fa-solid fa-download"></i> Export Data
+                </button>
+                <button id="cfm_import_btn" class="menu_button flex1">
+                    <i class="fa-solid fa-upload"></i> Import Data
+                </button>
+                <button id="cfm_restore_btn" class="menu_button flex1">
+                    <i class="fa-solid fa-rotate-left"></i> Restore Defaults
+                </button>
+            </div>
+
+            <!-- Status Display -->
+            <div id="cfm_status" class="wideMarginTop">
+                <h4>Current Status</h4>
+                <div>Total Messages: <span id="cfm_stat_totalMessages">--</span></div>
+                <div>Summarized: <span id="cfm_stat_summarizedMessages">--</span></div>
+                <div>Unsummarized: <span id="cfm_stat_unsummarizedMessages">--</span></div>
+                <div>Compression Ratio: <span id="cfm_stat_compressionRatio">--</span>%</div>
+                <div>Last Compact: <span id="cfm_stat_lastCompactTime">--</span></div>
+                <div>Level 1 Summaries: <span id="cfm_stat_level1Count">--</span></div>
+                <div>Level 2 Summaries: <span id="cfm_stat_level2Count">--</span></div>
+            </div>
+        </div>
+    </div>
+</div>

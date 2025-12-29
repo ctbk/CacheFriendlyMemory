@@ -1,7 +1,22 @@
+import { defaultSettings } from './constants.js';
+import { getContext, extension_settings } from '../../../../extensions.js';
+import { saveMetadata, saveSettingsDebounced } from '../../../../../script.js';
+
 const METADATA_KEY = 'cacheFriendlyMemory';
 
+/**
+ * Safe wrapper for toastr notifications
+ */
+function showToast(type, message) {
+    if (typeof toastr !== 'undefined' && toastr[type]) {
+        toastr[type](message, 'CacheFriendlyMemory');
+    } else {
+        console.log(`[${METADATA_KEY}] ${type}: ${message}`);
+    }
+}
+
 export function getChatStorage() {
-    const context = SillyTavern.getContext();
+    const context = getContext();
 
     if (!context?.chatMetadata) {
         console.warn(`[${METADATA_KEY}] Context not available`);
@@ -34,7 +49,6 @@ function initializeStorage(metadata) {
 
 export async function saveChatStorage() {
     try {
-        const { saveMetadata } = SillyTavern.getContext();
         await saveMetadata();
         console.debug(`[${METADATA_KEY}] Data saved to chat file`);
     } catch (error) {
@@ -44,18 +58,15 @@ export async function saveChatStorage() {
 }
 
 export function getGlobalSetting(key) {
-    const { extensionSettings } = SillyTavern.getContext();
-    return extensionSettings[METADATA_KEY]?.[key];
+    return extension_settings[METADATA_KEY]?.[key];
 }
 
 export function setGlobalSetting(key, value) {
-    const { extensionSettings, saveSettingsDebounced } = SillyTavern.getContext();
-
-    if (!extensionSettings[METADATA_KEY]) {
-        extensionSettings[METADATA_KEY] = {};
+    if (!extension_settings[METADATA_KEY]) {
+        extension_settings[METADATA_KEY] = {};
     }
 
-    extensionSettings[METADATA_KEY][key] = value;
+    extension_settings[METADATA_KEY][key] = value;
     saveSettingsDebounced();
 }
 
@@ -87,7 +98,7 @@ export function exportChatData() {
 
     const data = {
         exportDate: new Date().toISOString(),
-        chatId: SillyTavern.getContext().chatId,
+        chatId: getContext().chatId,
         ...storage,
     };
 
@@ -103,8 +114,6 @@ export function exportChatData() {
 }
 
 export function importChatData(jsonString) {
-    const { toastr } = SillyTavern.getContext();
-
     try {
         const data = JSON.parse(jsonString);
         const storage = getChatStorage();
@@ -115,9 +124,25 @@ export function importChatData(jsonString) {
 
         Object.assign(storage, data);
         saveChatStorage();
-        toastr.success('Import successful', 'CacheFriendlyMemory');
+        showToast('success', 'Import successful');
     } catch (error) {
-        console.error('Import failed:', error);
-        toastr.error('Import failed: ' + error.message, 'CacheFriendlyMemory');
+        console.error(`[${METADATA_KEY}] Import failed:`, error);
+        showToast('error', 'Import failed: ' + error.message);
     }
+}
+
+export async function restoreDefaults() {
+    const settings = extension_settings[METADATA_KEY];
+    if (!settings) {
+        console.error(`[${METADATA_KEY}] Settings object not initialized`);
+        return false;
+    }
+
+    for (const key of Object.keys(defaultSettings)) {
+        settings[key] = defaultSettings[key];
+    }
+
+    saveSettingsDebounced();
+    console.log(`[${METADATA_KEY}] Settings restored to defaults`);
+    return true;
 }
