@@ -27,10 +27,32 @@ export function getChatStorage() {
         initializeStorage(context.chatMetadata);
     }
 
-    return context.chatMetadata[METADATA_KEY];
+    const storage = context.chatMetadata[METADATA_KEY];
+
+    import('./message-metadata.js').then(({ countMessagesByLevel }) => {
+        const counts = countMessagesByLevel(context.chat || []);
+        storage.stats = storage.stats || {};
+        storage.stats.totalMessages = counts.total;
+        storage.stats.summarizedMessages = counts.level1 + counts.level2 + counts.level3;
+
+        if (storage.stats.summarizedMessages > 0 && storage.stats.totalMessages > 0) {
+            const totalSummaryTokens = storage.level1.summaries.reduce((sum, s) => sum + s.tokenCount, 0);
+            const rawMessagesTokens = storage.stats.summarizedMessages * 100;
+            storage.stats.currentCompressionRatio = totalSummaryTokens / rawMessagesTokens;
+        }
+    }).catch(err => {
+        console.warn(`[${METADATA_KEY}] Failed to calculate stats:`, err);
+    });
+
+    console.log(`[${METADATA_KEY}] getChatStorage - totalMessages: ${storage.stats?.totalMessages || 0}, summarizedMessages: ${storage.stats?.summarizedMessages || 0}`);
+
+    return storage;
 }
 
 function initializeStorage(metadata) {
+    const context = getContext();
+    const existingMessageCount = context?.chat?.length || 0;
+
     metadata[METADATA_KEY] = {
         enabled: true,
         lastSummarizedIndex: -1,
@@ -39,12 +61,18 @@ function initializeStorage(metadata) {
         level2: { summaries: [] },
         level3: { summary: null },
         stats: {
-            totalMessages: 0,
-            summarizedMessages: 0,
-            currentCompressionRatio: 0,
             lastCompactTime: null,
         },
+        injection: {
+            enabled: true,
+            position: 'IN_CHAT',
+            depth: 0,
+            scan: true,
+            role: 'system'
+        }
     };
+
+    console.log(`[${METADATA_KEY}] Initialized storage with ${existingMessageCount} existing messages`);
 }
 
 export async function saveChatStorage() {
@@ -86,6 +114,21 @@ export async function setChatSetting(key, value) {
     if (!storage) return;
 
     storage[key] = value;
+    await saveChatStorage();
+}
+
+export function getInjectionSetting(key) {
+    const storage = getChatStorage();
+    if (!storage) return null;
+    return storage.injection?.[key];
+}
+
+export async function setInjectionSetting(key, value) {
+    const storage = getChatStorage();
+    if (!storage) return;
+
+    storage.injection = storage.injection || {};
+    storage.injection[key] = value;
     await saveChatStorage();
 }
 
