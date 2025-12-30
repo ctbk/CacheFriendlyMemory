@@ -1,2 +1,11 @@
+# Dependencies
+node_modules/
+
+# Test coverage
+coverage/
+
+# Vitest
+.vitest/
+
 # Documentation
-#docs/
+docs/

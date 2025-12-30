@@ -1,4 +1,4 @@
-import { getContext, extension_prompt_types, setExtensionPrompt } from '../../../../script.js';
+import { getContext, extension_prompt_types, setExtensionPrompt } from '../../../../../script.js';
 import { getChatStorage } from './storage.js';
 
 const EXTENSION_NAME = 'cacheFriendlyMemory';

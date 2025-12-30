@@ -6,13 +6,14 @@ This file provides guidelines for agentic coding assistants working on CacheFrie
 
 **Testing locally:**
 1. Install test dependencies: `npm install`
-2. Run tests: `npm test` (but remember that vitest uses watch mode by default, you should use run)
+2. Run tests: `npm test` (but remember that vitest uses watch mode by default, you should use `--run` or `-- --run`)
 3. Run tests with UI: `npm run test:ui`
-4. Run tests with coverage: `npm run test:coverage`
-5. Place extension in `public/scripts/extensions/third-party/CacheFriendlyMemory/`
-6. Reload SillyTavern (the extension will auto-load)
-7. Test functionality through the UI and slash commands
-8. Check browser console for errors and debug messages
+4. Run tests with coverage: `npm run test:coverage -- --run`
+5. Run linter to check for import errors: `npm run lint`
+6. Place extension in `public/scripts/extensions/third-party/CacheFriendlyMemory/`
+7. Reload SillyTavern (the extension will auto-load)
+8. Test functionality through the UI and slash commands
+9. Check browser console for errors and debug messages
 
 **Debug mode:** Enable "Debug Mode" in settings for verbose console logging prefixed with `[CacheFriendlyMemory]`
 
@@ -35,6 +36,8 @@ const { getContext, eventSource, event_types } = SillyTavern.getContext();
 // Avoid
 import { chat } from '../../../script.js'; // Internal, may break
 ```
+
+**IMPORTANT:** Always run `npm run lint` after making changes to verify import paths are correct. The linter catches incorrect import paths that would cause the extension to fail loading.
 
 ### SillyTavern API Usage
 Always access SillyTavern APIs through `SillyTavern.getContext()`:
@@ -182,6 +185,7 @@ eventSource.on(event_types.USER_MESSAGE_RENDERED, async (mesId) => {
 
 ### CSS Guidelines
 Use `cfm-` prefix for all classes, follow SillyTavern's dark theme colors (#222, #333, #444, #eee), use flexbox for layouts.
+When possible, rely on SillyTavern CSS classes.
 
 ### Version Management
 Update manifest.json version for releases, update CHANGELOG.md with meaningful entries, follow semantic versioning (MAJOR.MINOR.PATCH).

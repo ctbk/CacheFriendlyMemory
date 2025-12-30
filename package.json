@@ -4,13 +4,20 @@
   "description": "CacheFriendlyMemory SillyTavern Extension",
   "type": "module",
   "scripts": {
+    "lint": "eslint .",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage"
   },
   "devDependencies": {
-    "vitest": "^1.0.0",
+    "@eslint/js": "^9.39.2",
+    "@vitest/coverage-v8": "^1.0.0",
     "@vitest/ui": "^1.0.0",
-    "@vitest/coverage-v8": "^1.0.0"
+    "eslint": "^9.39.2",
+    "eslint-plugin-import": "^2.32.0",
+    "vitest": "^1.0.0"
+  },
+  "dependencies": {
+    "@mohak34/opencode-notifier": "^0.1.5"
   }
 }
