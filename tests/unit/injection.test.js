@@ -1,14 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockSetExtensionPrompt } from '../setup.js';
 import { injectSummaries, clearInjection } from '../../src/injection.js';
 import { getChatStorage } from '../../src/storage.js';
-
-const mockSetExtensionPrompt = vi.fn();
-
-vi.mock('../../../../script.js', () => ({
-    getContext: vi.fn(() => ({ chat: [], symbols: { ignore: Symbol('ignore') } })),
-    setExtensionPrompt: vi.fn((...args) => mockSetExtensionPrompt(...args)),
-    extension_prompt_types: { IN_CHAT: 0, AFTER_SYSTEM: 1, BEFORE_USER: 2 }
-}));
 
 vi.mock('../../src/storage.js', () => ({
     getChatStorage: vi.fn()
@@ -21,7 +14,7 @@ describe('Injection Module', () => {
     });
 
     describe('injectSummaries', () => {
-        it('should call setExtensionPrompt with correct text when enabled', async () => {
+        it('should call mockSetExtensionPrompt with correct text when enabled', async () => {
             const storage = {
                 injection: { enabled: true, position: 0, depth: 0, scan: true, role: 'system' },
                 level1: { summaries: [{ text: 'Chapter 1' }] },
@@ -114,14 +107,8 @@ describe('Injection Module', () => {
 
             await injectSummaries();
 
-            expect(mockSetExtensionPrompt).toHaveBeenCalledWith(
-                'cacheFriendlyMemory',
-                expect.stringContaining('[Compressed Conversation History]'),
-                0,
-                0,
-                true,
-                'system'
-            );
+            // When no summaries exist, injection should be cleared
+            expect(mockSetExtensionPrompt).toHaveBeenCalledWith('cacheFriendlyMemory', '', 0, 0);
         });
     });
 

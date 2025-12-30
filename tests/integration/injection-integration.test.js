@@ -1,13 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { mockSetExtensionPrompt } from '../setup.js';
 import { injectSummaries, clearInjection } from '../../src/injection.js';
 import { getChatStorage } from '../../src/storage.js';
-
-const mockSetExtensionPrompt = vi.fn();
-
-vi.mock('../../../../script.js', () => ({
-    setExtensionPrompt: vi.fn((...args) => mockSetExtensionPrompt(...args)),
-    extension_prompt_types: { IN_CHAT: 0 }
-}));
 
 vi.mock('../../src/storage.js', () => ({
     getChatStorage: vi.fn()
