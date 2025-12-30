@@ -1,3 +1,4 @@
+import { getContext } from '../../../../extensions.js';
 import { eventSource, event_types } from '../../../../../script.js';
 import { getChatStorage, saveChatStorage } from './storage.js';
 import { markMessageActive } from './message-metadata.js';

@@ -18,6 +18,7 @@ export default [
         },
         rules: {
             'import/no-unresolved': ['error', { commonjs: true }],
+            'import/named': ['error'],
             'no-unused-vars': ['warn', { argsIgnorePattern: '^_' }]
         },
         settings: {

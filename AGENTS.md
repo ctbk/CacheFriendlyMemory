@@ -32,12 +32,22 @@ Use ES6 module syntax: `import { foo } from './file.js'`, named exports: `export
 ```javascript
 // Good
 import { getChatStorage } from './storage.js';
-const { getContext, eventSource, event_types } = SillyTavern.getContext();
+import { getContext } from '../../../extensions.js';
+import { eventSource, event_types } from '../../../script.js';
+const { extensionSettings, saveSettingsDebounced } = SillyTavern.getContext();
 // Avoid
 import { chat } from '../../../script.js'; // Internal, may break
+import { getContext } from '../../../script.js'; // WRONG! getContext is in extensions.js
 ```
 
-**IMPORTANT:** Always run `npm run lint` after making changes to verify import paths are correct. The linter catches incorrect import paths that would cause the extension to fail loading.
+**CRITICAL IMPORT RULES:**
+- `getContext`, `extension_settings` → import from `extensions.js`
+- `eventSource`, `event_types`, `saveSettingsDebounced`, `generateQuietPrompt` → import from `script.js`
+- Local modules → use relative paths: `./storage.js`, `'../src/storage.js'`
+
+**IMPORTANT:** Always run `npm run lint` after making changes. The linter catches:
+- Incorrect import paths that would cause the extension to fail loading
+- Named imports that don't exist in the source module (e.g., importing `getContext` from `script.js`)
 
 ### SillyTavern API Usage
 Always access SillyTavern APIs through `SillyTavern.getContext()`:
