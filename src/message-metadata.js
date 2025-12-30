@@ -33,10 +33,12 @@ export function getCompressionLevel(message) {
 }
 
 export function markMessageSummarized(message, level, summaryId) {
+    console.log('[CacheFriendlyMemory] markMessageSummarized - message.mes_id:', message.mes_id, 'level:', level, 'summaryId:', summaryId);
     setMessageMetadata(message, 'compressionLevel', level);
     setMessageMetadata(message, 'summaryId', summaryId);
     setMessageMetadata(message, 'included', false);
     setMessageMetadata(message, 'timestamp', Date.now());
+    console.log('[CacheFriendlyMemory] markMessageSummarized - message.extra:', JSON.stringify(message.extra));
 }
 
 export function markMessageActive(message) {

@@ -1,9 +1,10 @@
 import { extension_settings, getContext } from '../../../extensions.js';
-import { eventSource, event_types, saveSettingsDebounced } from '../../../../script.js';
+import { eventSource, event_types } from '../../../../script.js';
 import { extensionName, defaultSettings } from './src/constants.js';
 
-import { injectSummaries, clearInjection } from './src/injection.js';
+import { injectSummaries } from './src/injection.js';
 import { cacheFriendlyMemoryInterceptor } from './src/interceptor.js';
+import { registerExtensionEvents } from './src/events.js';
 
 let isInitialized = false;
 
@@ -27,80 +28,12 @@ jQuery(() => {
         const { loadSettings } = await import('./ui/settings.js');
         await loadSettings();
 
-        await registerEvents();
+        await registerExtensionEvents();
         await registerSlashCommands();
 
         isInitialized = true;
     });
 });
-
-async function registerEvents() {
-    eventSource.on(event_types.APP_READY, () => {
-        console.log(`[${extensionName}] App ready`);
-    });
-
-    eventSource.on(event_types.CHAT_CHANGED, async () => {
-        console.log(`[${extensionName}] Chat changed`);
-        const { getChatStorage } = await import('./src/storage.js');
-        getChatStorage();
-    });
-
-    eventSource.on(event_types.USER_MESSAGE_RENDERED, async (mesId) => {
-        const { getChatStorage, saveChatStorage } = await import('./src/storage.js');
-        const storage = getChatStorage();
-        if (!storage) return;
-
-        storage.stats.totalMessages++;
-        await saveChatStorage();
-        console.log(`[${extensionName}] User message rendered - totalMessages: ${storage.stats.totalMessages}, summarizedMessages: ${storage.stats.summarizedMessages}`);
-
-        const { getGlobalSetting } = await import('./src/storage.js');
-        const autoCompact = getGlobalSetting('autoCompact');
-        const compactThreshold = getGlobalSetting('compactThreshold');
-
-        if (!autoCompact) {
-            console.log(`[${extensionName}] Auto-compact disabled`);
-            return;
-        }
-
-        const unsummarizedCount = storage.stats.totalMessages - storage.stats.summarizedMessages;
-        console.log(`[${extensionName}] Checking compaction: unsummarized=${unsummarizedCount}, threshold=${compactThreshold}`);
-
-        if (unsummarizedCount >= compactThreshold) {
-            console.log(`[${extensionName}] Triggering auto-compaction (${unsummarizedCount} messages)`);
-            const { performCompaction } = await import('./src/compression.js');
-            await performCompaction();
-        }
-    });
-
-    eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, async (mesId) => {
-        const { getChatStorage, saveChatStorage } = await import('./src/storage.js');
-        const storage = getChatStorage();
-        if (!storage) return;
-
-        storage.stats.totalMessages++;
-        await saveChatStorage();
-        console.log(`[${extensionName}] Character message rendered - totalMessages: ${storage.stats.totalMessages}, summarizedMessages: ${storage.stats.summarizedMessages}`);
-
-        const { getGlobalSetting } = await import('./src/storage.js');
-        const autoCompact = getGlobalSetting('autoCompact');
-        const compactThreshold = getGlobalSetting('compactThreshold');
-
-        if (!autoCompact) {
-            console.log(`[${extensionName}] Auto-compact disabled`);
-            return;
-        }
-
-        const unsummarizedCount = storage.stats.totalMessages - storage.stats.summarizedMessages;
-        console.log(`[${extensionName}] Checking compaction: unsummarized=${unsummarizedCount}, threshold=${compactThreshold}`);
-
-        if (unsummarizedCount >= compactThreshold) {
-            console.log(`[${extensionName}] Triggering auto-compaction (${unsummarizedCount} messages)`);
-            const { performCompaction } = await import('./src/compression.js');
-            await performCompaction();
-        }
-    });
-}
 
 async function registerSlashCommands() {
     const context = getContext();
@@ -112,6 +45,7 @@ async function registerSlashCommands() {
         callback: async () => {
             const { performCompaction } = await import('./src/compression.js');
             await performCompaction();
+            await injectSummaries();
             return 'Compaction completed';
         },
         helpString: 'Manually trigger compaction of chat history',
@@ -122,7 +56,17 @@ async function registerSlashCommands() {
         callback: async () => {
             const { getChatStorage } = await import('./src/storage.js');
             const storage = getChatStorage();
-            return JSON.stringify(storage?.stats || { error: 'No storage available' }, null, 2);
+            if (!storage) {
+                return 'No storage available';
+            }
+            const output = {
+                stats: storage.stats,
+                injection: storage.injection,
+                level1Count: storage.level1?.summaries?.length || 0,
+                level2Count: storage.level2?.summaries?.length || 0,
+                level3Summary: !!storage.level3?.summary
+            };
+            return JSON.stringify(output, null, 2);
         },
         helpString: 'Show compression status and statistics',
     }));

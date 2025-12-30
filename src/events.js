@@ -1,5 +1,5 @@
 import { getContext } from '../../../../extensions.js';
-import { eventSource, event_types } from '../../../../../script.js';
+import { eventSource, event_types, extension_prompts } from '../../../../../script.js';
 import { getChatStorage, saveChatStorage } from './storage.js';
 import { markMessageActive } from './message-metadata.js';
 import { triggerCompaction, performCompaction } from './compression.js';
@@ -56,6 +56,30 @@ export function registerExtensionEvents() {
             await injectSummaries();
         }
     });
+
+    // Debug: Check if our prompt is present when context is being combined
+    eventSource.on(event_types.GENERATE_BEFORE_COMBINE_PROMPTS, async (data) => {
+        const ourPrompt = extension_prompts['cacheFriendlyMemory'];
+        console.log('[CacheFriendlyMemory] GENERATE_BEFORE_COMBINE_PROMPTS - checking our prompt:');
+        console.log('[CacheFriendlyMemory] - All extension_prompts keys:', Object.keys(extension_prompts));
+        if (ourPrompt) {
+            console.log('[CacheFriendlyMemory] - Our prompt IS present:', {
+                valueLength: ourPrompt.value?.length,
+                position: ourPrompt.position,
+                depth: ourPrompt.depth,
+                role: ourPrompt.role,
+                preview: ourPrompt.value?.substring(0, 100)
+            });
+        } else {
+            console.warn('[CacheFriendlyMemory] - Our prompt is NOT in extension_prompts at context combine time!');
+        }
+
+        // Also check if extensionPrompts in data contains ours
+        if (data?.extensionPrompts) {
+            const inData = data.extensionPrompts['cacheFriendlyMemory'];
+            console.log('[CacheFriendlyMemory] - In data.extensionPrompts:', !!inData);
+        }
+    });
 }
 
 export function unregisterExtensionEvents() {
@@ -64,6 +88,7 @@ export function unregisterExtensionEvents() {
     eventSource.removeListener(event_types.USER_MESSAGE_RENDERED);
     eventSource.removeListener(event_types.CHARACTER_MESSAGE_RENDERED);
     eventSource.removeListener(event_types.GENERATION_AFTER_COMMANDS);
+    eventSource.removeListener(event_types.GENERATE_BEFORE_COMBINE_PROMPTS);
 
     clearInjection();
 }

@@ -65,7 +65,7 @@ function initializeStorage(metadata) {
         },
         injection: {
             enabled: true,
-            position: 'IN_CHAT',
+            position: undefined,
             depth: 0,
             scan: true,
             role: 'system'

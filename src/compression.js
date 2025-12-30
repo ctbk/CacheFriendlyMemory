@@ -1,10 +1,11 @@
 import { getChatStorage, saveChatStorage, getGlobalSetting } from './storage.js';
 import { getContext } from '../../../../extensions.js';
-import { generateQuietPrompt } from '../../../../../script.js';
+import { generateQuietPrompt, saveChatDebounced } from '../../../../../script.js';
 import { estimateTokenCount } from './logic/token-estimation.js';
 import { shouldTriggerCompaction } from './logic/compaction-triggers.js';
 import { createFakeSummary } from './logic/fake-summarizer.js';
 import { getUnsummarizedCount, markMessageSummarized, getCompressionLevel } from './message-metadata.js';
+import { injectSummaries } from './injection.js';
 
 const USE_FAKE_SUMMARIZER = true;
 
@@ -49,11 +50,13 @@ export async function performCompaction() {
     const context = getContext();
     const chat = context.chat;
 
-    const unsummarizedMessages = chat.filter((m, idx) =>
+    const unsummarizedMessages = chat.filter((m, _idx) =>
         !m.is_system && getCompressionLevel(m) === null
     );
 
+    console.log('[CacheFriendlyMemory] Total messages in chat:', chat.length);
     console.log('[CacheFriendlyMemory] Unsummarized messages:', unsummarizedMessages.length);
+    console.log('[CacheFriendlyMemory] Storage stats - totalMessages:', storage.stats?.totalMessages, 'summarizedMessages:', storage.stats?.summarizedMessages);
 
     if (unsummarizedMessages.length === 0) {
         console.log('[CacheFriendlyMemory] No messages to compact');
@@ -96,13 +99,15 @@ export async function performCompaction() {
                 tokenCount: estimateTokenCount(summary),
             });
 
+            console.log('[CacheFriendlyMemory] Marking', chunk.length, 'messages as summarized with level 1');
             for (const message of chunk) {
                 markMessageSummarized(message, 1, summaryId);
+                console.log('[CacheFriendlyMemory] Marked message with id:', message.mes_id, 'extra keys:', Object.keys(message.extra || {}));
             }
 
             totalMessagesCompacted += chunk.length;
             summaryIndex++;
-            console.log('[CacheFriendlyMemory] Created summary:', summary.substring(0, 50) + '...');
+            console.log('[CacheFriendlyMemory] Created summary:', summary.substring(0, 50) + '...', 'Total summaries:', storage.level1.summaries.length);
         } else {
             console.warn('[CacheFriendlyMemory] Failed to compress chunk');
             break;
@@ -121,6 +126,9 @@ export async function performCompaction() {
 
     await saveChatStorage();
     console.log(`[CacheFriendlyMemory] Compacted ${totalMessagesCompacted} messages - Storage saved`);
+    saveChatDebounced();
+    console.log(`[CacheFriendlyMemory] Chat save triggered to persist message markings`);
+    await injectSummaries();
 }
 
 async function compressChunk(messages) {

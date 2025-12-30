@@ -16,7 +16,7 @@ describe('Injection Module', () => {
     describe('injectSummaries', () => {
         it('should call mockSetExtensionPrompt with correct text when enabled', async () => {
             const storage = {
-                injection: { enabled: true, position: 0, depth: 0, scan: true, role: 'system' },
+                injection: { enabled: true, position: 1, depth: 0, scan: true, role: 'system' },
                 level1: { summaries: [{ text: 'Chapter 1' }] },
                 level2: { summaries: [] },
                 level3: { summary: null }
@@ -28,10 +28,10 @@ describe('Injection Module', () => {
             expect(mockSetExtensionPrompt).toHaveBeenCalledWith(
                 'cacheFriendlyMemory',
                 expect.stringContaining('[Chapter 1]'),
-                0,
+                1,  // IN_CHAT position
                 0,
                 true,
-                'system'
+                0   // SYSTEM role (numeric)
             );
         });
 
@@ -43,7 +43,8 @@ describe('Injection Module', () => {
 
             await injectSummaries();
 
-            expect(mockSetExtensionPrompt).toHaveBeenCalledWith('cacheFriendlyMemory', '', 0, 0);
+            // When disabled, clearInjection is called which uses IN_CHAT (1)
+            expect(mockSetExtensionPrompt).toHaveBeenCalledWith('cacheFriendlyMemory', '', 1, 0);
         });
 
         it('should handle null storage gracefully', async () => {
@@ -56,7 +57,7 @@ describe('Injection Module', () => {
 
         it('should format all summary levels correctly', async () => {
             const storage = {
-                injection: { enabled: true, position: 0, depth: 0, scan: true, role: 'system' },
+                injection: { enabled: true, position: 1, depth: 0, scan: true, role: 'system' },
                 level1: { summaries: [{ text: 'Chapter 1' }, { text: 'Chapter 2' }] },
                 level2: { summaries: [{ text: 'Section 1' }] },
                 level3: { summary: 'Story summary' }
@@ -65,6 +66,7 @@ describe('Injection Module', () => {
 
             await injectSummaries();
 
+            expect(mockSetExtensionPrompt).toHaveBeenCalled();
             const callArgs = mockSetExtensionPrompt.mock.calls[0];
             const injectedText = callArgs[1];
 
@@ -81,14 +83,16 @@ describe('Injection Module', () => {
 
         it('should handle missing levels', async () => {
             const storage = {
-                injection: { enabled: true, position: 0, depth: 0, scan: true, role: 'system' },
+                injection: { enabled: true, position: 1, depth: 0, scan: true, role: 'system' },
                 level1: { summaries: [{ text: 'Chapter 1' }] },
+                level2: { summaries: [] },
                 level3: { summary: null }
             };
             vi.mocked(getChatStorage).mockReturnValue(storage);
 
             await injectSummaries();
 
+            expect(mockSetExtensionPrompt).toHaveBeenCalled();
             const callArgs = mockSetExtensionPrompt.mock.calls[0];
             const injectedText = callArgs[1];
 
@@ -98,7 +102,7 @@ describe('Injection Module', () => {
 
         it('should clear injection when no summaries available', async () => {
             const storage = {
-                injection: { enabled: true, position: 0, depth: 0, scan: true, role: 'system' },
+                injection: { enabled: true, position: 1, depth: 0, scan: true, role: 'system' },
                 level1: { summaries: [] },
                 level2: { summaries: [] },
                 level3: { summary: null }
@@ -108,7 +112,7 @@ describe('Injection Module', () => {
             await injectSummaries();
 
             // When no summaries exist, injection should be cleared
-            expect(mockSetExtensionPrompt).toHaveBeenCalledWith('cacheFriendlyMemory', '', 0, 0);
+            expect(mockSetExtensionPrompt).toHaveBeenCalledWith('cacheFriendlyMemory', '', 1, 0);
         });
     });
 
@@ -116,7 +120,8 @@ describe('Injection Module', () => {
         it('should clear extension prompt', async () => {
             await clearInjection();
 
-            expect(mockSetExtensionPrompt).toHaveBeenCalledWith('cacheFriendlyMemory', '', 0, 0);
+            // clearInjection uses extension_prompt_types.IN_CHAT (1) and depth 0
+            expect(mockSetExtensionPrompt).toHaveBeenCalledWith('cacheFriendlyMemory', '', 1, 0);
         });
     });
 });
