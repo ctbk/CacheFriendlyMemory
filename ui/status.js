@@ -1,3 +1,4 @@
+import { getContext } from '../../../../extensions.js';
 import { getChatStorage } from '../src/storage.js';
 
 export function createStatusBar() {

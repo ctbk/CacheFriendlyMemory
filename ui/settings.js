@@ -1,4 +1,4 @@
-import { extension_settings } from '../../../../extensions.js';
+import { extension_settings, getContext } from '../../../../extensions.js';
 import { extensionName, extensionFolderPath, defaultSettings } from '../src/constants.js';
 import { getGlobalSetting, setGlobalSetting, getChatStorage, exportChatData, importChatData, restoreDefaults } from '../src/storage.js';
 
