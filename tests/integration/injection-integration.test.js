@@ -15,7 +15,7 @@ describe('Injection Integration', () => {
 
     it('should inject summaries when enabled', async () => {
         const storage = {
-            injection: { enabled: true, position: 1, depth: 0, scan: true, role: 'system' },
+            injection: { enabled: true, position: 0, depth: 0, scan: true, role: 'system' },
             level1: { summaries: [{ text: 'Chapter 1 summary' }] },
             level2: { summaries: [] },
             level3: { summary: null }
@@ -28,7 +28,7 @@ describe('Injection Integration', () => {
         expect(mockSetExtensionPrompt).toHaveBeenCalledWith(
             'cacheFriendlyMemory',
             expect.stringContaining('[Chapter 1] Chapter 1 summary'),
-            1,  // IN_CHAT position
+            0,  // IN_PROMPT position
             0,
             true,
             0   // SYSTEM role (numeric)
@@ -44,20 +44,20 @@ describe('Injection Integration', () => {
 
         await injectSummaries();
 
-        // clearInjection uses IN_CHAT (1) and depth 0
-        expect(mockSetExtensionPrompt).toHaveBeenCalledWith('cacheFriendlyMemory', '', 1, 0);
+        // clearInjection uses IN_PROMPT (0) and depth 0
+        expect(mockSetExtensionPrompt).toHaveBeenCalledWith('cacheFriendlyMemory', '', 0, 0);
     });
 
     it('should clear injection explicitly', async () => {
         await clearInjection();
 
-        // clearInjection uses extension_prompt_types.IN_CHAT (1) and depth 0
-        expect(mockSetExtensionPrompt).toHaveBeenCalledWith('cacheFriendlyMemory', '', 1, 0);
+        // clearInjection uses extension_prompt_types.IN_PROMPT (0) and depth 0
+        expect(mockSetExtensionPrompt).toHaveBeenCalledWith('cacheFriendlyMemory', '', 0, 0);
     });
 
     it('should inject multi-level summaries', async () => {
         const storage = {
-            injection: { enabled: true, position: 1, depth: 0, scan: true, role: 'system' },
+            injection: { enabled: true, position: 0, depth: 0, scan: true, role: 'system' },
             level1: { summaries: [{ text: 'Chapter 1' }, { text: 'Chapter 2' }] },
             level2: { summaries: [{ text: 'Section 1' }] },
             level3: { summary: 'Overall story summary' }

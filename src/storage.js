@@ -1,6 +1,6 @@
 import { defaultSettings } from './constants.js';
 import { getContext, extension_settings } from '../../../../extensions.js';
-import { saveMetadata, saveSettingsDebounced } from '../../../../../script.js';
+import { saveMetadata, saveSettingsDebounced, extension_prompt_types } from '../../../../../script.js';
 
 const METADATA_KEY = 'cacheFriendlyMemory';
 
@@ -65,7 +65,7 @@ function initializeStorage(metadata) {
         },
         injection: {
             enabled: true,
-            position: undefined,
+            position: extension_prompt_types.IN_PROMPT,
             depth: 0,
             scan: true,
             role: 'system'

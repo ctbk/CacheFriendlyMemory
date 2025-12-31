@@ -172,7 +172,7 @@ export async function updateInjection() {
 
 export async function clearInjection() {
     try {
-        setExtensionPrompt(EXTENSION_NAME, '', extension_prompt_types.IN_CHAT, 0);
+        setExtensionPrompt(EXTENSION_NAME, '', extension_prompt_types.IN_PROMPT, 0);
         console.log('[CacheFriendlyMemory] Injection cleared');
     } catch (error) {
         console.error('[CacheFriendlyMemory] Failed to clear injection:', error);
