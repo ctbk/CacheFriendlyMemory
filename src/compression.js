@@ -6,6 +6,7 @@ import { shouldTriggerCompaction } from './logic/compaction-triggers.js';
 import { createFakeSummary } from './logic/fake-summarizer.js';
 import { getUnsummarizedCount, markMessageSummarized, getCompressionLevel } from './message-metadata.js';
 import { injectSummaries } from './injection.js';
+import { loadCompressionPrompt } from './prompts.js';
 
 const MODULE_NAME = 'CacheFriendlyMemory';
 const USE_FAKE_SUMMARIZER = false;
@@ -228,8 +229,7 @@ export async function compressChunk(messages) {
     }
 }
 
-function buildCompressionPrompt(messages, chapterNumber) {
-    const { loadCompressionPrompt } = import('./prompts.js');
+export function buildCompressionPrompt(messages, chapterNumber) {
     const compressionPrompt = loadCompressionPrompt();
 
     const messageText = messages.map(m => `${m.name}: ${m.mes}`).join('\n\n');

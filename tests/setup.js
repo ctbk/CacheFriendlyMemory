@@ -10,6 +10,7 @@ global.console = {
 
 // Create mock functions that can be accessed by tests
 export const mockSetExtensionPrompt = vi.fn();
+export const mockGenerateQuietPrompt = vi.fn();
 export const mockGetContext = vi.fn(() => ({
     chat: [],
     chatId: 'test-chat',
@@ -31,6 +32,7 @@ export const mockExtensionSettings = {
 // Mock SillyTavern modules globally to prevent browser-dependent imports
 vi.mock('../../../../../script.js', () => ({
     setExtensionPrompt: mockSetExtensionPrompt,
+    generateQuietPrompt: mockGenerateQuietPrompt,
     extension_prompt_types: { NONE: -1, IN_PROMPT: 0, IN_CHAT: 1, BEFORE_PROMPT: 2 },
     extension_prompt_roles: { SYSTEM: 0, USER: 1, ASSISTANT: 2 }
 }));

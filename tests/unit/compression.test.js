@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createFakeSummary } from '../../src/logic/fake-summarizer.js';
-import { triggerCompaction } from '../../src/compression.js';
-import { mockGetChatStorage, mockGetContext, mockGetGlobalSetting } from '../setup.js';
+import { triggerCompaction, buildCompressionPrompt, compressChunk } from '../../src/compression.js';
+import { mockGetChatStorage, mockGetContext, mockGetGlobalSetting, mockExtensionSettings, mockGenerateQuietPrompt } from '../setup.js';
 import * as messageMetadataModule from '../../src/message-metadata.js';
 
 describe('createFakeSummary', () => {
@@ -203,5 +203,153 @@ describe('triggerCompaction debug logging', () => {
             '[CacheFriendlyMemory] DEBUG - triggerCompaction() returning:',
             false
         );
+    });
+});
+
+describe('buildCompressionPrompt', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        mockGetContext.mockReturnValue({
+            chat: [],
+            chatId: 'test-chat',
+            extensionSettings: mockExtensionSettings
+        });
+    });
+
+    it('should load compression prompt and format messages correctly', () => {
+        const messages = [
+            { name: 'User', mes: 'Hello world' },
+            { name: 'Bot', mes: 'Hi there' }
+        ];
+
+        const prompt = buildCompressionPrompt(messages, 1);
+
+        expect(prompt).toContain('User: Hello world');
+        expect(prompt).toContain('Bot: Hi there');
+        expect(prompt).toContain('Chapter Number: 1');
+    });
+
+    it('should handle single message', () => {
+        const messages = [
+            { name: 'User', mes: 'Test message' }
+        ];
+
+        const prompt = buildCompressionPrompt(messages, 5);
+
+        expect(prompt).toContain('User: Test message');
+        expect(prompt).toContain('Chapter Number: 5');
+    });
+
+    it('should handle empty message array', () => {
+        const messages = [];
+
+        const prompt = buildCompressionPrompt(messages, 1);
+
+        expect(prompt).toContain('Chapter Number: 1');
+    });
+
+    it('should handle messages with special characters', () => {
+        const messages = [
+            { name: 'User', mes: 'Hello! How are you?' },
+            { name: 'Bot', mes: 'I\'m great, thanks!' }
+        ];
+
+        const prompt = buildCompressionPrompt(messages, 1);
+
+        expect(prompt).toContain('User: Hello! How are you?');
+        expect(prompt).toContain('Bot: I\'m great, thanks!');
+    });
+
+    it('should use custom prompt from settings if available', () => {
+        mockExtensionSettings.cacheFriendlyMemory = {
+            level1Prompt: 'Custom summary instructions'
+        };
+
+        const messages = [
+            { name: 'User', mes: 'Test' }
+        ];
+
+        const prompt = buildCompressionPrompt(messages, 1);
+
+        expect(prompt).toContain('Custom summary instructions');
+        expect(prompt).toContain('User: Test');
+
+        mockExtensionSettings.cacheFriendlyMemory = undefined;
+    });
+});
+
+describe('compressChunk', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        mockGenerateQuietPrompt.mockResolvedValue('[Test] Summary of messages');
+
+        mockGetChatStorage.mockReturnValue({
+            level1: { summaries: [] }
+        });
+
+        mockGetContext.mockReturnValue({
+            chat: [],
+            chatId: 'test-chat',
+            extensionSettings: mockExtensionSettings
+        });
+
+        mockGetGlobalSetting.mockImplementation((key) => {
+            if (key === 'compressionProfileId') return null;
+            return null;
+        });
+    });
+
+    it('should compress messages and return summary', async () => {
+        const messages = [
+            { name: 'User', mes: 'First message' },
+            { name: 'Bot', mes: 'Second message' }
+        ];
+
+        mockGenerateQuietPrompt.mockResolvedValue('[Test] Summary result');
+
+        const result = await compressChunk(messages);
+
+        expect(result).toBe('[Test] Summary result');
+        expect(mockGenerateQuietPrompt).toHaveBeenCalled();
+    });
+
+    it('should return null on error', async () => {
+        mockGenerateQuietPrompt.mockRejectedValue(new Error('API failed'));
+
+        const messages = [{ name: 'User', mes: 'Test' }];
+
+        const result = await compressChunk(messages);
+
+        expect(result).toBeNull();
+    });
+
+    it('should handle profile switching when compression profile is different', async () => {
+        mockExtensionSettings.connectionManager = {
+            selectedProfile: 'profile1',
+            profiles: [
+                { id: 'profile1', name: 'Profile 1' },
+                { id: 'profile2', name: 'Profile 2' }
+            ]
+        };
+
+        mockGetGlobalSetting.mockImplementation((key) => {
+            if (key === 'compressionProfileId') return 'profile2';
+            return null;
+        });
+
+        const messages = [{ name: 'User', mes: 'Test' }];
+        mockGenerateQuietPrompt.mockResolvedValue('[Test] Summary');
+
+        const result = await compressChunk(messages);
+
+        expect(result).toBe('[Test] Summary');
+    });
+
+    it('should handle empty message array', async () => {
+        const messages = [];
+
+        const result = await compressChunk(messages);
+
+        expect(result).toBeTruthy();
     });
 });
