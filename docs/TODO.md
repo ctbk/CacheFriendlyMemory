@@ -1,2 +1,2 @@
-- why keep some settings in the chat history? They should be extension level settings.
+- verify that all debug logs to console are only sent when DEBUG is enabled in settings panel
 - why the summary position should be configurable? It should be IN_PROMPT, fixed.

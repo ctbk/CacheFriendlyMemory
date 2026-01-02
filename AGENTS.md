@@ -213,8 +213,8 @@ eventSource.on(event_types.USER_MESSAGE_RENDERED, async (mesId) => {
 ```
 
 ### CSS Guidelines
-Use `cfm-` prefix for all classes, follow SillyTavern's dark theme colors (#222, #333, #444, #eee), use flexbox for layouts.
-When possible, rely on SillyTavern CSS classes.
+When possible, rely on existing SillyTavern CSS classes.
+When it's not, use `cfm-` prefix for all classes, follow SillyTavern's dark theme colors (#222, #333, #444, #eee), use flexbox for layouts.
 
 ### Version Management
 Update manifest.json version for releases, update CHANGELOG.md with meaningful entries, follow semantic versioning (MAJOR.MINOR.PATCH).
@@ -271,3 +271,6 @@ describe('functionName', () => {
     });
 });
 ```
+
+## Implementation Best Practices:
+1. Unless it's really (really) unconvenient or impossible, develop both new features and changes following the TDD approach.

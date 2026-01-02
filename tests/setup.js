@@ -10,7 +10,12 @@ global.console = {
 
 // Create mock functions that can be accessed by tests
 export const mockSetExtensionPrompt = vi.fn();
-export const mockGetContext = vi.fn(() => ({ chat: [], chatId: 'test-chat', symbols: { ignore: Symbol('ignore') } }));
+export const mockGetContext = vi.fn(() => ({
+    chat: [],
+    chatId: 'test-chat',
+    symbols: { ignore: Symbol('ignore') },
+    extensionSettings: mockExtensionSettings
+}));
 
 // Mock functions for storage module
 export const mockGetChatStorage = vi.fn();

@@ -1,6 +1,6 @@
 import { extension_settings, getContext } from '../../../../extensions.js';
-import { eventSource, event_types } from '../../../../../script.js';
-import { extensionName, extensionFolderPath, defaultSettings } from '../src/constants.js';
+import { eventSource, event_types, saveSettingsDebounced } from '../../../../../script.js';
+import { extensionName, extensionFolderPath, defaultSettings, DEFAULT_LEVEL_1_PROMPT } from '../src/constants.js';
 import { setGlobalSetting, getChatStorage, exportChatData, importChatData, restoreDefaults } from '../src/storage.js';
 
 export function getConnectionProfiles() {
@@ -306,6 +306,31 @@ function bindUIElements() {
             await injectSummaries();
         }
     });
+
+    $('#cfm-level1-prompt').on('change', function() {
+        const value = $(this).val();
+        settings.level1Prompt = value;
+        saveSettingsDebounced();
+
+        if (!value || value.trim() === '') {
+            toastr.warning('Level 1 prompt cannot be empty', 'CacheFriendlyMemory');
+        }
+
+        if (settings?.debugMode) {
+            console.debug(`[${extensionName}] Level 1 prompt updated:`, value);
+        }
+    });
+
+    $('#cfm-restore-prompt-default').on('click', function() {
+        settings.level1Prompt = DEFAULT_LEVEL_1_PROMPT;
+        $('#cfm-level1-prompt').val(DEFAULT_LEVEL_1_PROMPT);
+        saveSettingsDebounced();
+        toastr.success('Level 1 prompt restored to default', 'CacheFriendlyMemory');
+
+        if (settings?.debugMode) {
+            console.debug(`[${extensionName}] Level 1 prompt restored to default`);
+        }
+    });
 }
 
 function updateUI() {
@@ -325,6 +350,7 @@ function updateUI() {
     $('#cfm_level1ChunkSize').val(settings.level1ChunkSize);
     $('#cfm_level2ChunkSize').val(settings.level2ChunkSize);
     $('#cfm_targetCompression').val(settings.targetCompression);
+    $('#cfm-level1-prompt').val(settings.level1Prompt || DEFAULT_LEVEL_1_PROMPT);
     updateCompressionProfileUI();
 
     const storage = getChatStorage();

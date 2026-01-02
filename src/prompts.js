@@ -1,20 +1,15 @@
+import { DEFAULT_LEVEL_1_PROMPT } from './constants.js';
+import { getContext } from '../../../../extensions.js';
+
 export function loadCompressionPrompt() {
-    return `You are a story summarizer for a roleplay conversation. Your task is to create a concise but comprehensive summary of the provided conversation segment.
+    const { extensionSettings } = getContext();
+    const customPrompt = extensionSettings.cacheFriendlyMemory?.level1Prompt;
 
-Guidelines:
-1. Focus on plot progression, character interactions, and key events
-2. Maintain the tone and style of the original conversation
-3. Preserve important details about relationships, locations, and world-building
-4. Keep dialogue minimal and paraphrased
-5. Structure the summary in narrative form, not a bulleted list
-6. Use the format: "[Chapter N]" followed by the summary text
-7. Aim for approximately 20-30% of the original text length
+    if (customPrompt && customPrompt.trim() !== '') {
+        return customPrompt;
+    }
 
-Format your response exactly like this:
-[Chapter N]
-Your summary text here...
-
-Do not include any explanations or additional text outside the summary format.`;
+    return DEFAULT_LEVEL_1_PROMPT;
 }
 
 export function loadLevel2Prompt() {

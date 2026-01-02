@@ -1,5 +1,7 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { loadCompressionPrompt, loadLevel2Prompt, loadLevel3Prompt } from '../../src/prompts.js';
+import { mockExtensionSettings } from '../setup.js';
+import { DEFAULT_LEVEL_1_PROMPT } from '../../src/constants.js';
 
 describe('loadCompressionPrompt', () => {
     it('should return compression prompt string', () => {
@@ -56,5 +58,48 @@ describe('loadLevel3Prompt', () => {
     it('should specify 500-800 words limit', () => {
         const prompt = loadLevel3Prompt();
         expect(prompt).toContain('500-800');
+    });
+});
+
+describe('loadCompressionPrompt', () => {
+    beforeEach(() => {
+        mockExtensionSettings.cacheFriendlyMemory = undefined;
+    });
+
+    it('should return default prompt when extensionSettings.cacheFriendlyMemory is undefined', () => {
+        const prompt = loadCompressionPrompt();
+        expect(prompt).toBe(DEFAULT_LEVEL_1_PROMPT);
+    });
+
+    it('should return default prompt when extensionSettings.cacheFriendlyMemory.level1Prompt is undefined', () => {
+        mockExtensionSettings.cacheFriendlyMemory = {};
+        const prompt = loadCompressionPrompt();
+        expect(prompt).toBe(DEFAULT_LEVEL_1_PROMPT);
+    });
+
+    it('should return default prompt when extensionSettings.cacheFriendlyMemory.level1Prompt is empty string', () => {
+        mockExtensionSettings.cacheFriendlyMemory = { level1Prompt: '' };
+        const prompt = loadCompressionPrompt();
+        expect(prompt).toBe(DEFAULT_LEVEL_1_PROMPT);
+    });
+
+    it('should return default prompt when extensionSettings.cacheFriendlyMemory.level1Prompt is whitespace only', () => {
+        mockExtensionSettings.cacheFriendlyMemory = { level1Prompt: '   ' };
+        const prompt = loadCompressionPrompt();
+        expect(prompt).toBe(DEFAULT_LEVEL_1_PROMPT);
+    });
+
+    it('should return custom prompt when extensionSettings.cacheFriendlyMemory.level1Prompt has a value', () => {
+        const customPrompt = 'This is my custom prompt';
+        mockExtensionSettings.cacheFriendlyMemory = { level1Prompt: customPrompt };
+        const prompt = loadCompressionPrompt();
+        expect(prompt).toBe(customPrompt);
+    });
+
+    it('should return custom prompt when extensionSettings.cacheFriendlyMemory.level1Prompt has non-empty value with spaces', () => {
+        const customPrompt = '  This is my custom prompt with spaces  ';
+        mockExtensionSettings.cacheFriendlyMemory = { level1Prompt: customPrompt };
+        const prompt = loadCompressionPrompt();
+        expect(prompt).toBe(customPrompt);
     });
 });
