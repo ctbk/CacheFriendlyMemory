@@ -53,12 +53,10 @@
                 <input type="number" id="cfm_targetCompression" class="text_pole margin0" min="10" max="90" />
             </label>
             <label class="flex-container">
-                <span class="flex1">Compression Model</span>
-                <input type="text" id="cfm_compressionModel" class="text_pole margin0" />
-            </label>
-            <label class="flex-container">
-                <span class="flex1">Compression Preset</span>
-                <input type="text" id="cfm_compressionPreset" class="text_pole margin0" />
+                <span class="flex1">Compression Profile</span>
+                <select id="cfm_compressionProfile" class="text_pole margin0">
+                    <option value="">Current</option>
+                </select>
             </label>
 
             <hr>
@@ -149,6 +147,7 @@
                 <div>Last Compact: <span id="cfm_stat_lastCompactTime">--</span></div>
                 <div>Level 1 Summaries: <span id="cfm_stat_level1Count">--</span></div>
                 <div>Level 2 Summaries: <span id="cfm_stat_level2Count">--</span></div>
+                <div>Compression Profile: <span id="cfm_stat_compressionProfile">--</span></div>
             </div>
         </div>
     </div>

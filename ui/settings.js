@@ -1,6 +1,11 @@
 import { extension_settings, getContext } from '../../../../extensions.js';
+import { eventSource, event_types } from '../../../../../script.js';
 import { extensionName, extensionFolderPath, defaultSettings } from '../src/constants.js';
 import { setGlobalSetting, getChatStorage, exportChatData, importChatData, restoreDefaults } from '../src/storage.js';
+
+export function getConnectionProfiles() {
+    return extension_settings.connectionManager?.profiles || [];
+}
 
 export async function loadSettings() {
     extension_settings[extensionName] = extension_settings[extensionName] || {};
@@ -16,15 +21,132 @@ export async function loadSettings() {
 
     bindUIElements();
 
+    bindProfileEvents();
+
     updateUI();
 
     refreshStatus();
 
+    refreshCompressionProfileStatus();
+
     console.log(`[${extensionName}] Settings loaded`);
+}
+
+function bindCompressionProfileDropdown() {
+    const settings = extension_settings[extensionName];
+
+    function populateDropdown() {
+        const profiles = getConnectionProfiles();
+        const dropdown = $('#cfm_compressionProfile');
+        const currentValue = dropdown.val();
+
+        dropdown.empty();
+
+        const noneOption = $('<option>', {
+            value: '',
+            text: 'Current'
+        });
+        dropdown.append(noneOption);
+
+        profiles.forEach(profile => {
+            const option = $('<option>', {
+                value: profile.id,
+                text: profile.name || profile.id
+            });
+            dropdown.append(option);
+        });
+
+        dropdown.val(currentValue);
+    }
+
+    populateDropdown();
+
+    $('#cfm_compressionProfile').on('change', function() {
+        const value = $(this).val();
+        setGlobalSetting('compressionProfileId', value);
+        populateDropdown();
+        refreshCompressionProfileStatus();
+    });
+
+    $('#cfm_compressionProfile').val(settings.compressionProfileId || '');
+}
+
+export function updateCompressionProfileUI() {
+    const settings = extension_settings[extensionName];
+    $('#cfm_compressionProfile').val(settings.compressionProfileId || '');
+}
+
+function bindProfileEvents() {
+    eventSource.on(event_types.CONNECTION_PROFILE_DELETED, (profileId) => {
+        const settings = extension_settings[extensionName];
+        if (settings.compressionProfileId === profileId) {
+            setGlobalSetting('compressionProfileId', '');
+            console.log(`[${extensionName}] Deleted profile ${profileId} was selected, cleared setting`);
+            refreshCompressionProfileStatus();
+        }
+    });
+
+    eventSource.on(event_types.CONNECTION_PROFILE_CREATED, () => {
+        const dropdown = $('#cfm_compressionProfile');
+        const profiles = getConnectionProfiles();
+        const currentValue = dropdown.val();
+
+        profiles.forEach(profile => {
+            const option = $('<option>', {
+                value: profile.id,
+                text: profile.name || profile.id
+            });
+            if (!dropdown.find(`option[value="${profile.id}"]`).length) {
+                dropdown.append(option);
+            }
+        });
+
+        dropdown.val(currentValue);
+        console.log(`[${extensionName}] Refreshed dropdown on profile creation`);
+    });
+
+    eventSource.on(event_types.CONNECTION_PROFILE_UPDATED, (profileId) => {
+        const settings = extension_settings[extensionName];
+        if (settings.compressionProfileId === profileId) {
+            const dropdown = $('#cfm_compressionProfile');
+            const profiles = getConnectionProfiles();
+            const profile = profiles.find(p => p.id === profileId);
+
+            if (profile) {
+                const option = dropdown.find(`option[value="${profileId}"]`);
+                if (option.length) {
+                    option.text(profile.name || profile.id);
+                }
+                console.log(`[${extensionName}] Updated profile ${profileId} in dropdown`);
+                refreshCompressionProfileStatus();
+            }
+        }
+    });
+}
+
+export function refreshCompressionProfileStatus() {
+    const settings = extension_settings[extensionName];
+    const profileId = settings.compressionProfileId;
+
+    if (!profileId) {
+        $('#cfm_stat_compressionProfile').text('Current');
+        return;
+    }
+
+    const profiles = getConnectionProfiles();
+    const profile = profiles.find(p => p.id === profileId);
+
+    if (profile) {
+        $('#cfm_stat_compressionProfile').text(profile.name || profileId);
+    } else {
+        $('#cfm_stat_compressionProfile').text('Unknown');
+    }
 }
 
 function bindUIElements() {
     const settings = extension_settings[extensionName];
+
+    bindCompressionProfileDropdown();
 
     $('#cfm_enabled').on('change', function() {
         settings.enabled = $(this).is(':checked');
@@ -203,8 +325,7 @@ function updateUI() {
     $('#cfm_level1ChunkSize').val(settings.level1ChunkSize);
     $('#cfm_level2ChunkSize').val(settings.level2ChunkSize);
     $('#cfm_targetCompression').val(settings.targetCompression);
-    $('#cfm_compressionModel').val(settings.compressionModel);
-    $('#cfm_compressionPreset').val(settings.compressionPreset);
+    updateCompressionProfileUI();
 
     const storage = getChatStorage();
     if (storage) {

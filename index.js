@@ -6,14 +6,38 @@ import { injectSummaries } from './src/injection.js';
 import { cacheFriendlyMemoryInterceptor } from './src/interceptor.js';
 import { registerExtensionEvents } from './src/events.js';
 
+const MODULE_NAME = 'cacheFriendlyMemory';
 let isInitialized = false;
 
-jQuery(() => {
+export function migrateDeprecatedSettings() {
+    if (!extension_settings[MODULE_NAME]) {
+        return;
+    }
+
+    const deprecatedKeys = ['compressionModel', 'compressionPreset'];
+    const removedKeys = [];
+
+    for (const key of deprecatedKeys) {
+        if (key in extension_settings[MODULE_NAME]) {
+            delete extension_settings[MODULE_NAME][key];
+            removedKeys.push(key);
+        }
+    }
+
+    if (removedKeys.length > 0) {
+        console.log(`[${MODULE_NAME}] Removed deprecated settings: ${removedKeys.join(', ')}`);
+    }
+}
+
+if (typeof jQuery !== 'undefined') {
+    jQuery(() => {
     eventSource.on(event_types.APP_READY, async () => {
         if (isInitialized) {
             console.log(`[${extensionName}] Already initialized`);
             return;
         }
+
+        migrateDeprecatedSettings();
 
         extension_settings[extensionName] = extension_settings[extensionName] || structuredClone(defaultSettings);
 
@@ -34,6 +58,7 @@ jQuery(() => {
         isInitialized = true;
     });
 });
+}
 
 async function registerSlashCommands() {
     const context = getContext();

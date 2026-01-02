@@ -2,6 +2,19 @@
 
 All notable changes to CacheFriendlyMemory will be documented in this file.
 
+## [0.3.0] - 2025-01-02
+
+### Breaking Changes
+- **Replaced text-based compression model configuration with connection profile dropdown**
+  - Removed "Compression Model" and "Compression Preset" text input fields
+  - Added "Connection Profile" dropdown to select SillyTavern connection profiles
+  - Migration: Users with existing compressionModel/compressionPreset settings will be automatically migrated. The extension will use the current SillyTavern profile if no valid profile is found.
+  - Connection profiles must be configured in SillyTavern's Connection Manager before use
+
+### Changed
+- Compression configuration now uses SillyTavern connection profile system
+- Simplified UI with dropdown selection instead of manual text input
+
 ## [Unreleased]
 
 ### Added

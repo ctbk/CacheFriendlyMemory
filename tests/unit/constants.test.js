@@ -31,8 +31,7 @@ describe('Constants', () => {
         expect(defaultSettings.level1ChunkSize).toBe(10);
         expect(defaultSettings.level2ChunkSize).toBe(5);
         expect(defaultSettings.targetCompression).toBe(55);
-        expect(defaultSettings.compressionModel).toBe('');
-        expect(defaultSettings.compressionPreset).toBe('');
+        expect(defaultSettings.compressionProfileId).toBe('');
         expect(defaultSettings.debugMode).toBe(false);
         expect(defaultSettings.showProgressBar).toBe(true);
     });

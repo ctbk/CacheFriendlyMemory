@@ -10,8 +10,7 @@ export const defaultSettings = Object.freeze({
     level1ChunkSize: 10,
     level2ChunkSize: 5,
     targetCompression: 55,
-    compressionModel: '',
-    compressionPreset: '',
+    compressionProfileId: '',
     debugMode: false,
     showProgressBar: true,
     injection: {

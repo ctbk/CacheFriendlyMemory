@@ -15,6 +15,12 @@ export const mockGetContext = vi.fn(() => ({ chat: [], chatId: 'test-chat', symb
 // Mock functions for storage module
 export const mockGetChatStorage = vi.fn();
 export const mockGetInjectionSetting = vi.fn();
+export const mockExtensionSettings = {
+    connectionManager: {
+        selectedProfile: null,
+        profiles: []
+    }
+};
 
 // Mock SillyTavern modules globally to prevent browser-dependent imports
 vi.mock('../../../../../script.js', () => ({
@@ -24,7 +30,8 @@ vi.mock('../../../../../script.js', () => ({
 }));
 
 vi.mock('../../../../extensions.js', () => ({
-    getContext: mockGetContext
+    getContext: mockGetContext,
+    extension_settings: mockExtensionSettings
 }));
 
 // Mock storage module globally so all tests can access these mocks

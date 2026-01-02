@@ -48,8 +48,8 @@ Access settings in the Extensions menu under "CacheFriendlyMemory":
 - **Level 1 Chunk Size**: Messages per short-term summary (default: 10)
 - **Level 2 Chunk Size**: Summaries per long-term summary (default: 5)
 - **Target Compression**: Target compression ratio (default: 55%)
-- **Compression Model**: Connection profile for summarization
- - **Compression Preset**: Preset name for summarization
+ - **Connection Profile**: Select a SillyTavern connection profile for summarization (or "None" to use the current profile)
+  - Note: Profiles must be configured in SillyTavern's Connection Manager
  - **Enable Summary Injection**: Inject summaries into LLM context instead of raw messages
  - **Debug Mode**: Enable debug logging
  - **Show Progress Bar**: Display status bar in chat
@@ -107,7 +107,8 @@ Level 3 (Distant Past)    → Ultra-compressed story summary
 ## Requirements
 
 - SillyTavern 1.0.0 or higher
-- Connection profile or preset for summarization model
+- Connection profile configured in SillyTavern's Connection Manager for summarization
+- Select a valid connection profile in the extension settings (or use "None" for the current profile)
 
 ## License
 
