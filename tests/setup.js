@@ -20,6 +20,7 @@ export const mockGetContext = vi.fn(() => ({
 // Mock functions for storage module
 export const mockGetChatStorage = vi.fn();
 export const mockGetInjectionSetting = vi.fn();
+export const mockGetGlobalSetting = vi.fn();
 export const mockExtensionSettings = {
     connectionManager: {
         selectedProfile: null,
@@ -44,7 +45,7 @@ vi.mock('../src/storage.js', () => ({
     getChatStorage: mockGetChatStorage,
     getInjectionSetting: mockGetInjectionSetting,
     saveChatStorage: vi.fn(),
-    getGlobalSetting: vi.fn(),
+    getGlobalSetting: mockGetGlobalSetting,
     setGlobalSetting: vi.fn(),
     setInjectionSetting: vi.fn()
 }));

@@ -25,11 +25,23 @@ export async function triggerCompaction() {
     const compactThreshold = getGlobalSetting('compactThreshold');
     const contextThreshold = getGlobalSetting('contextThreshold');
     const autoCompact = getGlobalSetting('autoCompact');
+    const debugMode = getGlobalSetting('debugMode');
 
     const contextSize = context.maxContextTokens || 0;
     const currentContext = context.contextTokens || 0;
 
-    return shouldTriggerCompaction(
+    if (debugMode) {
+        console.log(`[${MODULE_NAME}] DEBUG - triggerCompaction() called with:`, {
+            unsummarizedCount,
+            contextSize,
+            currentContext,
+            compactThreshold,
+            contextThreshold,
+            autoCompact
+        });
+    }
+
+    const result = shouldTriggerCompaction(
         unsummarizedCount,
         contextSize,
         currentContext,
@@ -37,6 +49,12 @@ export async function triggerCompaction() {
         contextThreshold,
         autoCompact
     );
+
+    if (debugMode) {
+        console.log(`[${MODULE_NAME}] DEBUG - triggerCompaction() returning:`, result);
+    }
+
+    return result;
 }
 
 export async function performCompaction() {
