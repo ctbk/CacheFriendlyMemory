@@ -1,6 +1,6 @@
 import { defaultSettings } from './constants.js';
 import { getContext, extension_settings } from '../../../../extensions.js';
-import { saveMetadata, saveSettingsDebounced, extension_prompt_types } from '../../../../../script.js';
+import { saveMetadata, saveSettingsDebounced } from '../../../../../script.js';
 
 const METADATA_KEY = 'cacheFriendlyMemory';
 
@@ -54,7 +54,6 @@ function initializeStorage(metadata) {
     const existingMessageCount = context?.chat?.length || 0;
 
     metadata[METADATA_KEY] = {
-        enabled: true,
         lastSummarizedIndex: -1,
         level0: { startIndex: 0, messages: [] },
         level1: { summaries: [] },
@@ -62,13 +61,6 @@ function initializeStorage(metadata) {
         level3: { summary: null },
         stats: {
             lastCompactTime: null,
-        },
-        injection: {
-            enabled: true,
-            position: extension_prompt_types.IN_PROMPT,
-            depth: 0,
-            scan: true,
-            role: 'system'
         }
     };
 
@@ -98,38 +90,18 @@ export function setGlobalSetting(key, value) {
     saveSettingsDebounced();
 }
 
-export function getChatSetting(key) {
-    const storage = getChatStorage();
-    const chatValue = storage?.[key];
+export function getInjectionSetting(key) {
+    return extension_settings[METADATA_KEY]?.injection?.[key];
+}
 
-    if (chatValue !== undefined) {
-        return chatValue;
+export function setInjectionSetting(key, value) {
+    if (!extension_settings[METADATA_KEY]) {
+        extension_settings[METADATA_KEY] = {};
     }
 
-    return getGlobalSetting(key);
-}
-
-export async function setChatSetting(key, value) {
-    const storage = getChatStorage();
-    if (!storage) return;
-
-    storage[key] = value;
-    await saveChatStorage();
-}
-
-export function getInjectionSetting(key) {
-    const storage = getChatStorage();
-    if (!storage) return null;
-    return storage.injection?.[key];
-}
-
-export async function setInjectionSetting(key, value) {
-    const storage = getChatStorage();
-    if (!storage) return;
-
-    storage.injection = storage.injection || {};
-    storage.injection[key] = value;
-    await saveChatStorage();
+    extension_settings[METADATA_KEY].injection = extension_settings[METADATA_KEY].injection || {};
+    extension_settings[METADATA_KEY].injection[key] = value;
+    saveSettingsDebounced();
 }
 
 export function exportChatData() {

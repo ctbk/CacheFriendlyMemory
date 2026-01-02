@@ -1,5 +1,5 @@
 import { getContext } from '../../../../extensions.js';
-import { getChatStorage } from './storage.js';
+import { getChatStorage, getInjectionSetting } from './storage.js';
 import { getCompressionLevel } from './message-metadata.js';
 import { injectSummaries, hasSummaries } from './injection.js';
 
@@ -11,7 +11,7 @@ export async function cacheFriendlyMemoryInterceptor(chat, contextSize, abort, t
         return;
     }
 
-    if (!storage.injection?.enabled) {
+    if (!getInjectionSetting('enabled')) {
         console.log('[CacheFriendlyMemory] Interceptor - injection disabled');
         return;
     }

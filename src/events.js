@@ -1,6 +1,6 @@
 import { getContext } from '../../../../extensions.js';
 import { eventSource, event_types, extension_prompts } from '../../../../../script.js';
-import { getChatStorage, saveChatStorage } from './storage.js';
+import { getChatStorage, saveChatStorage, getInjectionSetting } from './storage.js';
 import { markMessageActive } from './message-metadata.js';
 import { triggerCompaction, performCompaction } from './compression.js';
 import { injectSummaries, clearInjection } from './injection.js';
@@ -51,8 +51,7 @@ export function registerExtensionEvents() {
 
     eventSource.on(event_types.GENERATION_AFTER_COMMANDS, async () => {
         console.log('[CacheFriendlyMemory] Generation after commands event');
-        const storage = getChatStorage();
-        if (storage?.injection?.enabled) {
+        if (getInjectionSetting('enabled')) {
             await injectSummaries();
         }
     });

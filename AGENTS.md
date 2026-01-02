@@ -219,6 +219,9 @@ When possible, rely on SillyTavern CSS classes.
 ### Version Management
 Update manifest.json version for releases, update CHANGELOG.md with meaningful entries, follow semantic versioning (MAJOR.MINOR.PATCH).
 
+### Backward Compatibility
+The extension is in an early, alpha stage of development. When making breaking changes don't bother with retro compatibility for now. 
+
 ### Testing Checklist
 When implementing features:
 1. Test with different chat states (new, existing, no metadata)

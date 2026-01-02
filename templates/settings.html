@@ -77,6 +77,34 @@
                         Inject compressed summaries into LLM context instead of raw messages
                     </small>
                 </div>
+                <div class="flex-container">
+                    <label class="flex1">
+                        <span>Position</span>
+                        <select id="cfm-injection-position" class="text_pole margin0">
+                            <option value="0">In Prompt</option>
+                            <option value="1">In Chat</option>
+                            <option value="2">Before Prompt</option>
+                        </select>
+                    </label>
+                    <label class="flex1">
+                        <span>Depth</span>
+                        <input type="number" id="cfm-injection-depth" class="text_pole margin0" min="0" max="10" />
+                    </label>
+                </div>
+                <div class="flex-container flexGap10">
+                    <label class="checkbox_label flex1">
+                        <input type="checkbox" id="cfm-injection-scan" checked />
+                        <span>Scan</span>
+                    </label>
+                    <label class="flex1">
+                        <span>Role</span>
+                        <select id="cfm-injection-role" class="text_pole margin0">
+                            <option value="system">System</option>
+                            <option value="user">User</option>
+                            <option value="assistant">Assistant</option>
+                        </select>
+                    </label>
+                </div>
             </div>
 
             <hr>

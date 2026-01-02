@@ -1,27 +1,30 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { mockSetExtensionPrompt } from '../setup.js';
+import { mockSetExtensionPrompt, mockGetChatStorage, mockGetInjectionSetting } from '../setup.js';
 import { injectSummaries, clearInjection } from '../../src/injection.js';
-import { getChatStorage } from '../../src/storage.js';
-
-vi.mock('../../src/storage.js', () => ({
-    getChatStorage: vi.fn()
-}));
 
 describe('Injection Integration', () => {
     beforeEach(() => {
         mockSetExtensionPrompt.mockClear();
-        vi.mocked(getChatStorage).mockReset();
+        mockGetChatStorage.mockReset();
+        mockGetInjectionSetting.mockClear();
     });
 
     it('should inject summaries when enabled', async () => {
         const storage = {
-            injection: { enabled: true, position: 0, depth: 0, scan: true, role: 'system' },
             level1: { summaries: [{ text: 'Chapter 1 summary' }] },
             level2: { summaries: [] },
             level3: { summary: null }
         };
 
-        vi.mocked(getChatStorage).mockReturnValue(storage);
+        mockGetChatStorage.mockReturnValue(storage);
+        mockGetInjectionSetting.mockImplementation((key) => {
+            if (key === 'enabled') return true;
+            if (key === 'position') return 0;
+            if (key === 'depth') return 0;
+            if (key === 'scan') return true;
+            if (key === 'role') return 'system';
+            return null;
+        });
 
         await injectSummaries();
 
@@ -36,11 +39,10 @@ describe('Injection Integration', () => {
     });
 
     it('should clear injection when disabled', async () => {
-        const storage = {
-            injection: { enabled: false }
-        };
+        const storage = {};
 
-        vi.mocked(getChatStorage).mockReturnValue(storage);
+        mockGetChatStorage.mockReturnValue(storage);
+        mockGetInjectionSetting.mockReturnValue(false);
 
         await injectSummaries();
 
@@ -57,13 +59,20 @@ describe('Injection Integration', () => {
 
     it('should inject multi-level summaries', async () => {
         const storage = {
-            injection: { enabled: true, position: 0, depth: 0, scan: true, role: 'system' },
             level1: { summaries: [{ text: 'Chapter 1' }, { text: 'Chapter 2' }] },
             level2: { summaries: [{ text: 'Section 1' }] },
             level3: { summary: 'Overall story summary' }
         };
 
-        vi.mocked(getChatStorage).mockReturnValue(storage);
+        mockGetChatStorage.mockReturnValue(storage);
+        mockGetInjectionSetting.mockImplementation((key) => {
+            if (key === 'enabled') return true;
+            if (key === 'position') return 0;
+            if (key === 'depth') return 0;
+            if (key === 'scan') return true;
+            if (key === 'role') return 'system';
+            return null;
+        });
 
         await injectSummaries();
 
@@ -83,7 +92,8 @@ describe('Injection Integration', () => {
     });
 
     it('should handle null storage gracefully', async () => {
-        vi.mocked(getChatStorage).mockReturnValue(null);
+        mockGetChatStorage.mockReturnValue(null);
+        mockGetInjectionSetting.mockReturnValue(true);
 
         await injectSummaries();
 

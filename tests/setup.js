@@ -12,6 +12,10 @@ global.console = {
 export const mockSetExtensionPrompt = vi.fn();
 export const mockGetContext = vi.fn(() => ({ chat: [], chatId: 'test-chat', symbols: { ignore: Symbol('ignore') } }));
 
+// Mock functions for storage module
+export const mockGetChatStorage = vi.fn();
+export const mockGetInjectionSetting = vi.fn();
+
 // Mock SillyTavern modules globally to prevent browser-dependent imports
 vi.mock('../../../../../script.js', () => ({
     setExtensionPrompt: mockSetExtensionPrompt,
@@ -21,4 +25,14 @@ vi.mock('../../../../../script.js', () => ({
 
 vi.mock('../../../../extensions.js', () => ({
     getContext: mockGetContext
+}));
+
+// Mock storage module globally so all tests can access these mocks
+vi.mock('../src/storage.js', () => ({
+    getChatStorage: mockGetChatStorage,
+    getInjectionSetting: mockGetInjectionSetting,
+    saveChatStorage: vi.fn(),
+    getGlobalSetting: vi.fn(),
+    setGlobalSetting: vi.fn(),
+    setInjectionSetting: vi.fn()
 }));

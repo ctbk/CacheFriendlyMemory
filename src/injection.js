@@ -1,5 +1,5 @@
 import { extension_prompt_types, extension_prompt_roles, setExtensionPrompt, extension_prompts } from '../../../../../script.js';
-import { getChatStorage } from './storage.js';
+import { getChatStorage, getInjectionSetting } from './storage.js';
 import { getContext } from '../../../../extensions.js';
 
 /**
@@ -115,8 +115,9 @@ function collectSummaries() {
 export async function injectSummaries() {
     console.log('[CacheFriendlyMemory] injectSummaries() - START');
     const storage = getChatStorage();
-    console.log('[CacheFriendlyMemory] injectSummaries() - storage:', !!storage, 'injection enabled:', storage?.injection?.enabled);
-    if (!storage || !storage.injection?.enabled) {
+    const injectionEnabled = getInjectionSetting('enabled');
+    console.log('[CacheFriendlyMemory] injectSummaries() - storage:', !!storage, 'injection enabled:', injectionEnabled);
+    if (!storage || !injectionEnabled) {
         console.log('[CacheFriendlyMemory] injectSummaries - injection disabled or no storage');
         clearInjection();
         return;
@@ -131,10 +132,10 @@ export async function injectSummaries() {
     const summaryText = collectSummaries();
 
     try {
-        const position = storage.injection.position ?? extension_prompt_types.IN_CHAT;
-        const depth = storage.injection.depth ?? 0;
-        const scan = storage.injection.scan !== false;
-        const roleString = storage.injection.role ?? 'system';
+        const position = getInjectionSetting('position') ?? extension_prompt_types.IN_CHAT;
+        const depth = getInjectionSetting('depth') ?? 0;
+        const scan = getInjectionSetting('scan') !== false;
+        const roleString = getInjectionSetting('role') ?? 'system';
         const role = getRoleValue(roleString);
 
         console.log('[CacheFriendlyMemory] Injection params -- position:', position, 'depth:', depth, 'scan:', scan, 'role:', role, `(${roleString})`);

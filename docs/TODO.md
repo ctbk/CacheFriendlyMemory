@@ -1,0 +1,2 @@
+- why keep some settings in the chat history? They should be extension level settings.
+- why the summary position should be configurable? It should be IN_PROMPT, fixed.

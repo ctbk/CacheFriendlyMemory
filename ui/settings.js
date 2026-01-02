@@ -1,6 +1,6 @@
 import { extension_settings, getContext } from '../../../../extensions.js';
 import { extensionName, extensionFolderPath, defaultSettings } from '../src/constants.js';
-import { getGlobalSetting, setGlobalSetting, getChatStorage, exportChatData, importChatData, restoreDefaults } from '../src/storage.js';
+import { setGlobalSetting, getChatStorage, exportChatData, importChatData, restoreDefaults } from '../src/storage.js';
 
 export async function loadSettings() {
     extension_settings[extensionName] = extension_settings[extensionName] || {};
@@ -127,7 +127,7 @@ function bindUIElements() {
     });
 
     $('#cfm-injection-enabled').on('change', async function() {
-        const { getInjectionSetting, setInjectionSetting } = await import('../src/storage.js');
+        const { setInjectionSetting } = await import('../src/storage.js');
         const { injectSummaries, clearInjection } = await import('../src/injection.js');
 
         await setInjectionSetting('enabled', $(this).is(':checked'));
@@ -136,6 +136,52 @@ function bindUIElements() {
             await injectSummaries();
         } else {
             await clearInjection();
+        }
+    });
+
+    $('#cfm-injection-position').on('change', async function() {
+        const { setInjectionSetting, getInjectionSetting } = await import('../src/storage.js');
+        const { injectSummaries } = await import('../src/injection.js');
+
+        const value = parseInt($(this).val());
+        await setInjectionSetting('position', value);
+
+        if (getInjectionSetting('enabled')) {
+            await injectSummaries();
+        }
+    });
+
+    $('#cfm-injection-depth').on('change', async function() {
+        const { setInjectionSetting, getInjectionSetting } = await import('../src/storage.js');
+        const { injectSummaries } = await import('../src/injection.js');
+
+        const value = parseInt($(this).val());
+        await setInjectionSetting('depth', isNaN(value) ? 0 : value);
+
+        if (getInjectionSetting('enabled')) {
+            await injectSummaries();
+        }
+    });
+
+    $('#cfm-injection-scan').on('change', async function() {
+        const { setInjectionSetting, getInjectionSetting } = await import('../src/storage.js');
+        const { injectSummaries } = await import('../src/injection.js');
+
+        await setInjectionSetting('scan', $(this).is(':checked'));
+
+        if (getInjectionSetting('enabled')) {
+            await injectSummaries();
+        }
+    });
+
+    $('#cfm-injection-role').on('change', async function() {
+        const { setInjectionSetting, getInjectionSetting } = await import('../src/storage.js');
+        const { injectSummaries } = await import('../src/injection.js');
+
+        await setInjectionSetting('role', $(this).val());
+
+        if (getInjectionSetting('enabled')) {
+            await injectSummaries();
         }
     });
 }
@@ -162,7 +208,15 @@ function updateUI() {
 
     const storage = getChatStorage();
     if (storage) {
-        $('#cfm-injection-enabled').prop('checked', storage.injection?.enabled ?? true);
+        import('../src/storage.js').then(({ getInjectionSetting }) => {
+            $('#cfm-injection-enabled').prop('checked', getInjectionSetting('enabled') ?? true);
+            $('#cfm-injection-position').val(getInjectionSetting('position') ?? 0);
+            $('#cfm-injection-depth').val(getInjectionSetting('depth') ?? 0);
+            $('#cfm-injection-scan').prop('checked', getInjectionSetting('scan') !== false);
+            $('#cfm-injection-role').val(getInjectionSetting('role') ?? 'system');
+        }).catch(err => {
+            console.warn('[CacheFriendlyMemory] Failed to get injection settings:', err);
+        });
     }
 }
 

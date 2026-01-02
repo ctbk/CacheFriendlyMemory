@@ -14,4 +14,11 @@ export const defaultSettings = Object.freeze({
     compressionPreset: '',
     debugMode: false,
     showProgressBar: true,
+    injection: {
+        enabled: true,
+        position: 0,
+        depth: 0,
+        scan: true,
+        role: 'system'
+    }
 });
