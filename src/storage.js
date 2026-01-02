@@ -54,7 +54,6 @@ function initializeStorage(metadata) {
     const existingMessageCount = context?.chat?.length || 0;
 
     metadata[METADATA_KEY] = {
-        lastSummarizedIndex: -1,
         level0: { startIndex: 0, messages: [] },
         level1: { summaries: [] },
         level2: { summaries: [] },

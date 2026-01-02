@@ -8,7 +8,7 @@ import { getUnsummarizedCount, markMessageSummarized, getCompressionLevel } from
 import { injectSummaries } from './injection.js';
 
 const MODULE_NAME = 'CacheFriendlyMemory';
-const USE_FAKE_SUMMARIZER = true;
+const USE_FAKE_SUMMARIZER = false;
 
 export async function triggerCompaction() {
     const storage = getChatStorage();

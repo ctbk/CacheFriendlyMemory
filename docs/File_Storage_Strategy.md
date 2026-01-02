@@ -84,7 +84,6 @@ Extensions store **chat-specific data** in the chat file's `chat_metadata` field
     "yourExtensionName": {
       // Your per-chat data here
       "memories": [],
-      "lastSummarizedIndex": 100,
       "summaries": [...]
     },
     "openvault": {
@@ -411,7 +410,6 @@ export function getChatData() {
     if (!context.chatMetadata[METADATA_KEY]) {
         // Initialize with default structure
         context.chatMetadata[METADATA_KEY] = {
-            lastSummarizedIndex: -1,
             summaries: [],
             level0Messages: [],  // Raw messages
             level1Summaries: [], // Short-term
@@ -460,7 +458,6 @@ extension_settings.cacheFriendlyMemory = {
 // Per-Chat: Actual data and overrides
 chat_metadata.cacheFriendlyMemory = {
     enabled: true,  // Can override global default
-    lastSummarizedIndex: 100,
     summaries: [...],
     ...chat-specific data
 };
@@ -548,7 +545,6 @@ Based on the compression strategy document and SillyTavern patterns, here are th
 ```javascript
 {
     enabled: true,                      // Can override global default
-    lastSummarizedIndex: -1,           // Track progress
     
     // Hierarchical storage
     level0: {                         // Raw messages (frozen zone)
@@ -610,7 +606,6 @@ export function getChatStorage() {
 function initializeStorage(metadata) {
     metadata[METADATA_KEY] = {
         enabled: true,
-        lastSummarizedIndex: -1,
         level0: { startIndex: 0, messages: [] },
         level1: { summaries: [] },
         level2: { summaries: [] },
