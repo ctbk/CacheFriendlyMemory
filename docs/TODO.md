@@ -1,4 +1,2 @@
-- compress only after bot answer, never after user's prompt.
-- cfm-compact command gives error
-- add progress bar (or something) when compressing
 - modify the fake summarizer so it will include the first 20-30 words of each message being compressed. One per line.
+- change the auto triggering parameters: do not autocompress before % of context. Compress until % of context is freed.

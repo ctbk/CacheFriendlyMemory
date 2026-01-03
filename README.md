@@ -6,6 +6,7 @@ A SillyTavern extension that provides automatic, hierarchical context compressio
 
 - **Hierarchical Compression**: Progressive compression across 4 levels (raw → short-term → long-term → ultra-compressed)
 - **Auto-Compaction**: Automatically compresses when message count or context threshold is reached
+- **Compaction Progress UI**: Real-time progress feedback during chat compaction with toast notifications
 - **Cache-Friendly**: Maintains prompts stable to optimize caching
 - **Non-Destructive**: Original messages preserved, only marked as summarized
 - **Configurable**: User-adjustable thresholds, chunk sizes, and compression models
@@ -48,11 +49,27 @@ Access settings in the Extensions menu under "CacheFriendlyMemory":
 - **Level 1 Chunk Size**: Messages per short-term summary (default: 10)
 - **Level 2 Chunk Size**: Summaries per long-term summary (default: 5)
 - **Target Compression**: Target compression ratio (default: 55%)
- - **Connection Profile**: Select a SillyTavern connection profile for summarization (or "None" to use the current profile)
+- **Connection Profile**: Select a SillyTavern connection profile for summarization (or "None" to use the current profile)
   - Note: Profiles must be configured in SillyTavern's Connection Manager
- - **Enable Summary Injection**: Inject summaries into LLM context instead of raw messages
- - **Debug Mode**: Enable debug logging
- - **Show Progress Bar**: Display status bar in chat
+- **Enable Summary Injection**: Inject summaries into LLM context instead of raw messages
+- **Debug Mode**: Enable verbose console logging for troubleshooting
+- **Show Progress Bar**: Display inline progress indicator in settings panel during compaction
+
+### Compaction Progress UI
+
+When compaction is triggered (either manually or automatically), the extension provides real-time progress feedback:
+
+- **Toast Notifications**: A toast notification appears showing "Compacting: X/Y batches (Z%)" with a spinning icon
+  - The toast updates after each batch is processed
+  - Auto-dismisses when compaction completes or fails
+- **Inline Progress** (when Show Progress Bar is enabled): Progress displayed in the settings panel
+  - Shows current batch count and percentage
+  - Visible only when settings panel is open
+- **Debug Logging** (when Debug Mode is enabled): Detailed progress messages logged to console
+  - Tracks batch start, updates, and completion
+  - Helps troubleshoot compaction issues
+
+The progress UI is non-blocking and won't delay compaction. If UI updates fail, compaction continues normally.
 
 ## Message-Based Tracking
 

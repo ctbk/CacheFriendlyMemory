@@ -2,6 +2,21 @@
 
 All notable changes to CacheFriendlyMemory will be documented in this file.
 
+## [0.4.0] - 2026-01-03
+
+### Added
+- **Compaction Progress UI**: Real-time progress feedback during chat compaction
+  - Toast notifications showing progress (X/Y batches processed)
+  - Inline progress in settings panel (when Show Progress Bar is enabled)
+  - Debug logging for troubleshooting (when Debug Mode is enabled)
+  - Non-blocking UI updates that don't delay compaction
+  - Progress automatically hidden on completion or error
+
+### Changed
+- performCompaction now integrates with progress tracking system
+- Progress calculated based on batches (target messages / chunk size)
+- Toast notifications use SillyTavern's toastr API
+
 ## [0.3.0] - 2025-01-02
 
 ### Breaking Changes

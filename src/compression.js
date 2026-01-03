@@ -8,6 +8,11 @@ import { getUnsummarizedCount, markMessageSummarized, getCompressionLevel } from
 import { injectSummaries } from './injection.js';
 import { loadCompressionPrompt } from './prompts.js';
 import { debugLog } from './utils/debug.js';
+import {
+    startCompactionProgress,
+    updateCompactionProgress,
+    completeCompactionProgress
+} from './progress.js';
 
 const MODULE_NAME = 'CacheFriendlyMemory';
 const USE_FAKE_SUMMARIZER = false;
@@ -87,64 +92,87 @@ export async function performCompaction() {
 
     debugLog(`[${MODULE_NAME}] Target messages to compact:`, targetMessages, 'out of', unsummarizedMessages.length);
 
+    // Calculate total batches for progress tracking
+    const totalBatches = Math.ceil(targetMessages / level1ChunkSize);
+    startCompactionProgress(totalBatches);
+    debugLog(`[${MODULE_NAME}] Total batches to process:`, totalBatches);
+
     let summaryIndex = storage.level1.summaries.length;
+    let batchIndex = 0;
 
-    while (totalMessagesCompacted < targetMessages && totalMessagesCompacted < unsummarizedMessages.length) {
-        let chunkSize = level1ChunkSize;
-        const remaining = unsummarizedMessages.length - totalMessagesCompacted;
+    try {
+        while (totalMessagesCompacted < targetMessages && totalMessagesCompacted < unsummarizedMessages.length) {
+            let chunkSize = level1ChunkSize;
+            const remaining = unsummarizedMessages.length - totalMessagesCompacted;
 
-        if (remaining < chunkSize && totalMessagesCompacted > 0) {
-            chunkSize = remaining;
-        } else if (remaining < chunkSize * 0.5) {
-            break;
-        }
-
-        const chunk = unsummarizedMessages.slice(totalMessagesCompacted, totalMessagesCompacted + chunkSize);
-        debugLog(`[${MODULE_NAME}] Compressing chunk:`, chunk.length, 'messages');
-
-        const summary = await compressChunk(chunk);
-
-        if (summary) {
-            const summaryId = `l1_${Date.now()}_${summaryIndex}`;
-            storage.level1.summaries.push({
-                id: summaryId,
-                startMessageIndex: chat.indexOf(chunk[0]),
-                endMessageIndex: chat.indexOf(chunk[chunk.length - 1]),
-                text: summary,
-                timestamp: Date.now(),
-                tokenCount: estimateTokenCount(summary),
-            });
-
-            debugLog(`[${MODULE_NAME}] Marking`, chunk.length, 'messages as summarized with level 1');
-            for (const message of chunk) {
-                markMessageSummarized(message, 1, summaryId);
-                debugLog(`[${MODULE_NAME}] Marked message with id:`, message.mes_id, 'extra keys:', Object.keys(message.extra || {}));
+            if (remaining < chunkSize && totalMessagesCompacted > 0) {
+                chunkSize = remaining;
+            } else if (remaining < chunkSize * 0.5) {
+                break;
             }
 
-            totalMessagesCompacted += chunk.length;
-            summaryIndex++;
-            debugLog(`[${MODULE_NAME}] Created summary:`, summary.substring(0, 50) + '...', 'Total summaries:', storage.level1.summaries.length);
-        } else {
-            console.warn(`[${MODULE_NAME}] Failed to compress chunk`);
-            break;
+            const chunk = unsummarizedMessages.slice(totalMessagesCompacted, totalMessagesCompacted + chunkSize);
+            debugLog(`[${MODULE_NAME}] Compressing chunk:`, chunk.length, 'messages');
+
+            const summary = await compressChunk(chunk);
+
+            if (summary) {
+                const summaryId = `l1_${Date.now()}_${summaryIndex}`;
+                storage.level1.summaries.push({
+                    id: summaryId,
+                    startMessageIndex: chat.indexOf(chunk[0]),
+                    endMessageIndex: chat.indexOf(chunk[chunk.length - 1]),
+                    text: summary,
+                    timestamp: Date.now(),
+                    tokenCount: estimateTokenCount(summary),
+                });
+
+                debugLog(`[${MODULE_NAME}] Marking`, chunk.length, 'messages as summarized with level 1');
+                for (const message of chunk) {
+                    markMessageSummarized(message, 1, summaryId);
+                    debugLog(`[${MODULE_NAME}] Marked message with id:`, message.mes_id, 'extra keys:', Object.keys(message.extra || {}));
+                }
+
+                totalMessagesCompacted += chunk.length;
+                batchIndex++;
+                summaryIndex++;
+
+                // Update progress after successful chunk compression
+                updateCompactionProgress(batchIndex, totalBatches);
+
+                debugLog(`[${MODULE_NAME}] Created summary:`, summary.substring(0, 50) + '...', 'Total summaries:', storage.level1.summaries.length);
+            } else {
+                console.warn(`[${MODULE_NAME}] Failed to compress chunk`);
+                break;
+            }
         }
+
+        storage.stats.lastCompactTime = Date.now();
+
+        const totalSummaryTokens = storage.level1.summaries.reduce((sum, s) => sum + s.tokenCount, 0);
+        const rawMessagesTokens = totalMessagesCompacted * 100;
+        storage.stats.currentCompressionRatio = totalSummaryTokens / rawMessagesTokens;
+
+        debugLog(`[${MODULE_NAME}] Final stats - summarizedMessages:`, storage.stats.summarizedMessages);
+        debugLog(`[${MODULE_NAME}] Total summaries:`, storage.level1.summaries.length);
+        debugLog(`[${MODULE_NAME}] Compression ratio:`, storage.stats.currentCompressionRatio.toFixed(2));
+
+        await saveChatStorage();
+        debugLog(`[${MODULE_NAME}] Compacted ${totalMessagesCompacted} messages - Storage saved`);
+        saveChatDebounced();
+        debugLog(`[${MODULE_NAME}] Chat save triggered to persist message markings`);
+        await injectSummaries();
+
+        // Complete progress on success
+        completeCompactionProgress(true, `Compacted ${totalMessagesCompacted} messages`);
+    } catch (error) {
+        console.error(`[${MODULE_NAME}] Compaction error:`, error);
+
+        // Complete progress on error
+        completeCompactionProgress(false, `Compaction failed: ${error.message}`);
+
+        throw error;
     }
-
-    storage.stats.lastCompactTime = Date.now();
-
-    const totalSummaryTokens = storage.level1.summaries.reduce((sum, s) => sum + s.tokenCount, 0);
-    const rawMessagesTokens = totalMessagesCompacted * 100;
-    storage.stats.currentCompressionRatio = totalSummaryTokens / rawMessagesTokens;
-
-    debugLog(`[${MODULE_NAME}] Final stats - summarizedMessages:`, storage.stats.summarizedMessages);
-    debugLog(`[${MODULE_NAME}] Total summaries:`, storage.level1.summaries.length);
-    debugLog(`[${MODULE_NAME}] Compression ratio:`, storage.stats.currentCompressionRatio.toFixed(2));
-
-    await saveChatStorage();
-    debugLog(`[${MODULE_NAME}] Compacted ${totalMessagesCompacted} messages - Storage saved`);
-    saveChatDebounced();
-    debugLog(`[${MODULE_NAME}] Chat save triggered to persist message markings`);
-    await injectSummaries();
 }
 
 export async function applyProfileSwitch(profileId) {

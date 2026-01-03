@@ -3,7 +3,6 @@ import { eventSource, event_types } from '../../../../script.js';
 import { extensionName, defaultSettings } from './src/constants.js';
 import { debugLog } from './src/utils/debug.js';
 
-import { injectSummaries } from './src/injection.js';
 import { cacheFriendlyMemoryInterceptor } from './src/interceptor.js';
 import { registerExtensionEvents } from './src/events.js';
 
@@ -71,7 +70,6 @@ async function registerSlashCommands() {
         callback: async () => {
             const { performCompaction } = await import('./src/compression.js');
             await performCompaction();
-            await injectSummaries();
             return 'Compaction completed';
         },
         helpString: 'Manually trigger compaction of chat history',
