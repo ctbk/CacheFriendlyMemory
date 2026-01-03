@@ -1,2 +1,4 @@
 - verify that all debug logs to console are only sent when DEBUG is enabled in settings panel
-- why the summary position should be configurable? It should be IN_PROMPT, fixed.
+- compress only after bot answer, never after user's prompt.
+- cfm-compact command gives error
+- add progress bar (or somthing) when compressing
