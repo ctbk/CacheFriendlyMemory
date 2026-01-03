@@ -1,4 +1,4 @@
-- verify that all debug logs to console are only sent when DEBUG is enabled in settings panel
 - compress only after bot answer, never after user's prompt.
 - cfm-compact command gives error
-- add progress bar (or somthing) when compressing
+- add progress bar (or something) when compressing
+- modify the fake summarizer so it will include the first 20-30 words of each message being compressed. One per line.
