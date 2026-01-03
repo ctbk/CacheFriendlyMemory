@@ -1,6 +1,7 @@
 import { extension_prompt_types, extension_prompt_roles, setExtensionPrompt, extension_prompts } from '../../../../../script.js';
 import { getChatStorage, getInjectionSetting } from './storage.js';
 import { getContext } from '../../../../extensions.js';
+import { debugLog } from './utils/debug.js';
 
 /**
  * Debug function to verify injection is in extension_prompts
@@ -64,7 +65,7 @@ function collectSummaries() {
         return '';
     }
 
-    console.log('[CacheFriendlyMemory] collectSummaries - storage state:', {
+    debugLog('[CacheFriendlyMemory] collectSummaries - storage state:', {
         level1Count: storage.level1?.summaries?.length || 0,
         level2Count: storage.level2?.summaries?.length || 0,
         hasLevel3: !!storage.level3?.summary,
@@ -75,14 +76,14 @@ function collectSummaries() {
     lines.push('[Compressed Conversation History]');
     lines.push('');
 
-    console.log('[CacheFriendlyMemory] collectSummaries - level3 summary:', !!storage.level3?.summary);
+    debugLog('[CacheFriendlyMemory] collectSummaries - level3 summary:', !!storage.level3?.summary);
     if (storage.level3?.summary) {
         lines.push('[Long-term Summary]');
         lines.push(storage.level3.summary);
         lines.push('');
     }
 
-    console.log('[CacheFriendlyMemory] collectSummaries - level2 summaries count:', storage.level2?.summaries?.length || 0);
+    debugLog('[CacheFriendlyMemory] collectSummaries - level2 summaries count:', storage.level2?.summaries?.length || 0);
     if (storage.level2?.summaries?.length > 0) {
         lines.push('[Medium-term Summaries]');
         for (let i = 0; i < storage.level2.summaries.length; i++) {
@@ -92,7 +93,7 @@ function collectSummaries() {
         lines.push('');
     }
 
-    console.log('[CacheFriendlyMemory] collectSummaries - level1 summaries count:', storage.level1?.summaries?.length || 0);
+    debugLog('[CacheFriendlyMemory] collectSummaries - level1 summaries count:', storage.level1?.summaries?.length || 0);
     if (storage.level1?.summaries?.length > 0) {
         lines.push('[Recent Summaries]');
         for (let i = 0; i < storage.level1.summaries.length; i++) {
@@ -105,26 +106,26 @@ function collectSummaries() {
     lines.push('[End Compressed History]');
 
     const result = lines.join('\n');
-    console.log('[CacheFriendlyMemory] Summary text length:', result.length);
+    debugLog('[CacheFriendlyMemory] Summary text length:', result.length);
     if (result.length > 60) {
-        console.log('[CacheFriendlyMemory] Summary text preview:', result.substring(0, 100));
+        debugLog('[CacheFriendlyMemory] Summary text preview:', result.substring(0, 100));
     }
     return result;
 }
 
 export async function injectSummaries() {
-    console.log('[CacheFriendlyMemory] injectSummaries() - START');
+    debugLog('[CacheFriendlyMemory] injectSummaries() - START');
     const storage = getChatStorage();
     const injectionEnabled = getInjectionSetting('enabled');
-    console.log('[CacheFriendlyMemory] injectSummaries() - storage:', !!storage, 'injection enabled:', injectionEnabled);
+    debugLog('[CacheFriendlyMemory] injectSummaries() - storage:', !!storage, 'injection enabled:', injectionEnabled);
     if (!storage || !injectionEnabled) {
-        console.log('[CacheFriendlyMemory] injectSummaries - injection disabled or no storage');
+        debugLog('[CacheFriendlyMemory] injectSummaries - injection disabled or no storage');
         clearInjection();
         return;
     }
 
     if (!hasSummaries(storage)) {
-        console.log('[CacheFriendlyMemory] No summaries in storage - nothing to inject');
+        debugLog('[CacheFriendlyMemory] No summaries in storage - nothing to inject');
         clearInjection();
         return;
     }
@@ -138,7 +139,7 @@ export async function injectSummaries() {
         const roleString = getInjectionSetting('role') ?? 'system';
         const role = getRoleValue(roleString);
 
-        console.log('[CacheFriendlyMemory] Injection params -- position:', position, 'depth:', depth, 'scan:', scan, 'role:', role, `(${roleString})`);
+        debugLog('[CacheFriendlyMemory] Injection params -- position:', position, 'depth:', depth, 'scan:', scan, 'role:', role, `(${roleString})`);
         setExtensionPrompt(
             EXTENSION_NAME,
             summaryText,
@@ -147,12 +148,12 @@ export async function injectSummaries() {
             scan,
             role
         );
-        console.log('[CacheFriendlyMemory] Summaries injected into context - text length:', summaryText.length);
+        debugLog('[CacheFriendlyMemory] Summaries injected into context - text length:', summaryText.length);
 
         // Verify it was actually set
         const verification = extension_prompts[EXTENSION_NAME];
         if (verification) {
-            console.log('[CacheFriendlyMemory] VERIFIED - prompt is in extension_prompts:', {
+            debugLog('[CacheFriendlyMemory] VERIFIED - prompt is in extension_prompts:', {
                 hasValue: !!verification.value,
                 valueLength: verification.value?.length,
                 position: verification.position,
@@ -174,7 +175,7 @@ export async function updateInjection() {
 export async function clearInjection() {
     try {
         setExtensionPrompt(EXTENSION_NAME, '', extension_prompt_types.IN_PROMPT, 0);
-        console.log('[CacheFriendlyMemory] Injection cleared');
+        debugLog('[CacheFriendlyMemory] Injection cleared');
     } catch (error) {
         console.error('[CacheFriendlyMemory] Failed to clear injection:', error);
     }

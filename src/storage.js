@@ -1,6 +1,7 @@
 import { defaultSettings } from './constants.js';
 import { getContext, extension_settings } from '../../../../extensions.js';
 import { saveMetadata, saveSettingsDebounced } from '../../../../../script.js';
+import { debugLog } from './utils/debug.js';
 
 const METADATA_KEY = 'cacheFriendlyMemory';
 
@@ -11,7 +12,7 @@ function showToast(type, message) {
     if (typeof toastr !== 'undefined' && toastr[type]) {
         toastr[type](message, 'CacheFriendlyMemory');
     } else {
-        console.log(`[${METADATA_KEY}] ${type}: ${message}`);
+        debugLog(`[${METADATA_KEY}] ${type}: ${message}`);
     }
 }
 
@@ -44,7 +45,7 @@ export function getChatStorage() {
         console.warn(`[${METADATA_KEY}] Failed to calculate stats:`, err);
     });
 
-    console.log(`[${METADATA_KEY}] getChatStorage - totalMessages: ${storage.stats?.totalMessages || 0}, summarizedMessages: ${storage.stats?.summarizedMessages || 0}`);
+    debugLog(`[${METADATA_KEY}] getChatStorage - totalMessages: ${storage.stats?.totalMessages || 0}, summarizedMessages: ${storage.stats?.summarizedMessages || 0}`);
 
     return storage;
 }
@@ -63,13 +64,13 @@ function initializeStorage(metadata) {
         }
     };
 
-    console.log(`[${METADATA_KEY}] Initialized storage with ${existingMessageCount} existing messages`);
+    debugLog(`[${METADATA_KEY}] Initialized storage with ${existingMessageCount} existing messages`);
 }
 
 export async function saveChatStorage() {
     try {
         await saveMetadata();
-        console.debug(`[${METADATA_KEY}] Data saved to chat file`);
+        debugLog(`[${METADATA_KEY}] Data saved to chat file`);
     } catch (error) {
         console.error(`[${METADATA_KEY}] Failed to save:`, error);
         throw error;
@@ -157,6 +158,6 @@ export async function restoreDefaults() {
     }
 
     saveSettingsDebounced();
-    console.log(`[${METADATA_KEY}] Settings restored to defaults`);
+    debugLog(`[${METADATA_KEY}] Settings restored to defaults`);
     return true;
 }

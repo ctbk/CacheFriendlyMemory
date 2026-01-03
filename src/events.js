@@ -4,17 +4,18 @@ import { getChatStorage, saveChatStorage, getInjectionSetting } from './storage.
 import { markMessageActive } from './message-metadata.js';
 import { triggerCompaction, performCompaction } from './compression.js';
 import { injectSummaries, clearInjection } from './injection.js';
+import { debugLog } from './utils/debug.js';
 
 export function registerExtensionEvents() {
 
     eventSource.on(event_types.CHAT_CHANGED, async () => {
-        console.log('[CacheFriendlyMemory] Chat changed event');
+        debugLog('[CacheFriendlyMemory] Chat changed event');
         getChatStorage();
         await injectSummaries();
     });
 
     eventSource.on(event_types.MESSAGE_RECEIVED, async (mesId) => {
-        console.log('[CacheFriendlyMemory] Message received event:', mesId);
+        debugLog('[CacheFriendlyMemory] Message received event:', mesId);
         const storage = getChatStorage();
         if (!storage) return;
 
@@ -32,7 +33,7 @@ export function registerExtensionEvents() {
     });
 
     eventSource.on(event_types.USER_MESSAGE_RENDERED, async (mesId) => {
-        console.log('[CacheFriendlyMemory] User message rendered event:', mesId);
+        debugLog('[CacheFriendlyMemory] User message rendered event:', mesId);
         const context = getContext();
         const message = context.chat?.[mesId];
         if (message) {
@@ -41,7 +42,7 @@ export function registerExtensionEvents() {
     });
 
     eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, async (mesId) => {
-        console.log('[CacheFriendlyMemory] Character message rendered event:', mesId);
+        debugLog('[CacheFriendlyMemory] Character message rendered event:', mesId);
         const context = getContext();
         const message = context.chat?.[mesId];
         if (message) {
@@ -50,7 +51,7 @@ export function registerExtensionEvents() {
     });
 
     eventSource.on(event_types.GENERATION_AFTER_COMMANDS, async () => {
-        console.log('[CacheFriendlyMemory] Generation after commands event');
+        debugLog('[CacheFriendlyMemory] Generation after commands event');
         if (getInjectionSetting('enabled')) {
             await injectSummaries();
         }
@@ -59,10 +60,10 @@ export function registerExtensionEvents() {
     // Debug: Check if our prompt is present when context is being combined
     eventSource.on(event_types.GENERATE_BEFORE_COMBINE_PROMPTS, async (data) => {
         const ourPrompt = extension_prompts['cacheFriendlyMemory'];
-        console.log('[CacheFriendlyMemory] GENERATE_BEFORE_COMBINE_PROMPTS - checking our prompt:');
-        console.log('[CacheFriendlyMemory] - All extension_prompts keys:', Object.keys(extension_prompts));
+        debugLog('[CacheFriendlyMemory] GENERATE_BEFORE_COMBINE_PROMPTS - checking our prompt:');
+        debugLog('[CacheFriendlyMemory] - All extension_prompts keys:', Object.keys(extension_prompts));
         if (ourPrompt) {
-            console.log('[CacheFriendlyMemory] - Our prompt IS present:', {
+            debugLog('[CacheFriendlyMemory] - Our prompt IS present:', {
                 valueLength: ourPrompt.value?.length,
                 position: ourPrompt.position,
                 depth: ourPrompt.depth,
@@ -76,7 +77,7 @@ export function registerExtensionEvents() {
         // Also check if extensionPrompts in data contains ours
         if (data?.extensionPrompts) {
             const inData = data.extensionPrompts['cacheFriendlyMemory'];
-            console.log('[CacheFriendlyMemory] - In data.extensionPrompts:', !!inData);
+            debugLog('[CacheFriendlyMemory] - In data.extensionPrompts:', !!inData);
         }
     });
 }

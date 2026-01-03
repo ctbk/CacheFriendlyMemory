@@ -2,17 +2,18 @@ import { getContext } from '../../../../extensions.js';
 import { getChatStorage, getInjectionSetting } from './storage.js';
 import { getCompressionLevel } from './message-metadata.js';
 import { injectSummaries, hasSummaries } from './injection.js';
+import { debugLog } from './utils/debug.js';
 
 export async function cacheFriendlyMemoryInterceptor(chat, contextSize, abort, type) {
-    console.log('[CacheFriendlyMemory] Interceptor START - type:', type);
+    debugLog('[CacheFriendlyMemory] Interceptor START - type:', type);
     const storage = getChatStorage();
     if (!storage) {
-        console.log('[CacheFriendlyMemory] Interceptor - no storage');
+        debugLog('[CacheFriendlyMemory] Interceptor - no storage');
         return;
     }
 
     if (!getInjectionSetting('enabled')) {
-        console.log('[CacheFriendlyMemory] Interceptor - injection disabled');
+        debugLog('[CacheFriendlyMemory] Interceptor - injection disabled');
         return;
     }
 
@@ -30,20 +31,20 @@ export async function cacheFriendlyMemoryInterceptor(chat, contextSize, abort, t
         return;
     }
 
-    console.log('[CacheFriendlyMemory] Interceptor - awaiting injectSummaries()');
+    debugLog('[CacheFriendlyMemory] Interceptor - awaiting injectSummaries()');
     await injectSummaries();
-    console.log('[CacheFriendlyMemory] Interceptor - injectSummaries() completed');
+    debugLog('[CacheFriendlyMemory] Interceptor - injectSummaries() completed');
 
     const context = getContext();
     const IGNORE_SYMBOL = context.symbols.ignore;
-    console.log('[CacheFriendlyMemory] Interceptor - IGNORE_SYMBOL:', IGNORE_SYMBOL);
+    debugLog('[CacheFriendlyMemory] Interceptor - IGNORE_SYMBOL:', IGNORE_SYMBOL);
 
     let start = chat.length - 1;
     if (type === 'continue') {
         start--;
     }
 
-    console.log('[CacheFriendlyMemory] Interceptor - scanning messages from', start, 'to 0');
+    debugLog('[CacheFriendlyMemory] Interceptor - scanning messages from', start, 'to 0');
     let ignoredCount = 0;
 
     for (let i = start; i >= 0; i--) {
@@ -58,10 +59,10 @@ export async function cacheFriendlyMemoryInterceptor(chat, contextSize, abort, t
         chat[i].extra[IGNORE_SYMBOL] = true;
 
         ignoredCount++;
-        console.log(`[CacheFriendlyMemory] Ignoring message ${i} (level ${compressionLevel})`);
+        debugLog(`[CacheFriendlyMemory] Ignoring message ${i} (level ${compressionLevel})`);
     }
 
-    console.log(`[CacheFriendlyMemory] Interceptor complete - ignored ${ignoredCount} messages`);
+    debugLog(`[CacheFriendlyMemory] Interceptor complete - ignored ${ignoredCount} messages`);
 }
 
 globalThis.cacheFriendlyMemoryInterceptor = cacheFriendlyMemoryInterceptor;

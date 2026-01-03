@@ -1,6 +1,7 @@
 import { extension_settings, getContext } from '../../../extensions.js';
 import { eventSource, event_types } from '../../../../script.js';
 import { extensionName, defaultSettings } from './src/constants.js';
+import { debugLog } from './src/utils/debug.js';
 
 import { injectSummaries } from './src/injection.js';
 import { cacheFriendlyMemoryInterceptor } from './src/interceptor.js';
@@ -25,7 +26,7 @@ export function migrateDeprecatedSettings() {
     }
 
     if (removedKeys.length > 0) {
-        console.log(`[${MODULE_NAME}] Removed deprecated settings: ${removedKeys.join(', ')}`);
+        debugLog(`[${MODULE_NAME}] Removed deprecated settings: ${removedKeys.join(', ')}`);
     }
 }
 
@@ -33,7 +34,7 @@ if (typeof jQuery !== 'undefined') {
     jQuery(() => {
     eventSource.on(event_types.APP_READY, async () => {
         if (isInitialized) {
-            console.log(`[${extensionName}] Already initialized`);
+            debugLog(`[${extensionName}] Already initialized`);
             return;
         }
 
@@ -47,7 +48,7 @@ if (typeof jQuery !== 'undefined') {
             }
         }
 
-        console.log(`[${extensionName}] Module initialized`);
+        debugLog(`[${extensionName}] Module initialized`);
 
         const { loadSettings } = await import('./ui/settings.js');
         await loadSettings();

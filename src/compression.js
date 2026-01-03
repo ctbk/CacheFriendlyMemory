@@ -7,6 +7,7 @@ import { createFakeSummary } from './logic/fake-summarizer.js';
 import { getUnsummarizedCount, markMessageSummarized, getCompressionLevel } from './message-metadata.js';
 import { injectSummaries } from './injection.js';
 import { loadCompressionPrompt } from './prompts.js';
+import { debugLog } from './utils/debug.js';
 
 const MODULE_NAME = 'CacheFriendlyMemory';
 const USE_FAKE_SUMMARIZER = false;
@@ -26,21 +27,18 @@ export async function triggerCompaction() {
     const compactThreshold = getGlobalSetting('compactThreshold');
     const contextThreshold = getGlobalSetting('contextThreshold');
     const autoCompact = getGlobalSetting('autoCompact');
-    const debugMode = getGlobalSetting('debugMode');
 
     const contextSize = context.maxContextTokens || 0;
     const currentContext = context.contextTokens || 0;
 
-    if (debugMode) {
-        console.log(`[${MODULE_NAME}] DEBUG - triggerCompaction() called with:`, {
-            unsummarizedCount,
-            contextSize,
-            currentContext,
-            compactThreshold,
-            contextThreshold,
-            autoCompact
-        });
-    }
+    debugLog(`[${MODULE_NAME}] DEBUG - triggerCompaction() called with:`, {
+        unsummarizedCount,
+        contextSize,
+        currentContext,
+        compactThreshold,
+        contextThreshold,
+        autoCompact
+    });
 
     const result = shouldTriggerCompaction(
         unsummarizedCount,
@@ -51,9 +49,7 @@ export async function triggerCompaction() {
         autoCompact
     );
 
-    if (debugMode) {
-        console.log(`[${MODULE_NAME}] DEBUG - triggerCompaction() returning:`, result);
-    }
+    debugLog(`[${MODULE_NAME}] DEBUG - triggerCompaction() returning:`, result);
 
     return result;
 }
@@ -65,7 +61,7 @@ export async function performCompaction() {
         return;
     }
 
-    console.log(`[${MODULE_NAME}] Starting compaction`);
+    debugLog(`[${MODULE_NAME}] Starting compaction`);
 
     const context = getContext();
     const chat = context.chat;
@@ -74,12 +70,12 @@ export async function performCompaction() {
         !m.is_system && getCompressionLevel(m) === null
     );
 
-    console.log(`[${MODULE_NAME}] Total messages in chat:`, chat.length);
-    console.log(`[${MODULE_NAME}] Unsummarized messages:`, unsummarizedMessages.length);
-    console.log(`[${MODULE_NAME}] Storage stats - totalMessages:`, storage.stats?.totalMessages, 'summarizedMessages:', storage.stats?.summarizedMessages);
+    debugLog(`[${MODULE_NAME}] Total messages in chat:`, chat.length);
+    debugLog(`[${MODULE_NAME}] Unsummarized messages:`, unsummarizedMessages.length);
+    debugLog(`[${MODULE_NAME}] Storage stats - totalMessages:`, storage.stats?.totalMessages, 'summarizedMessages:', storage.stats?.summarizedMessages);
 
     if (unsummarizedMessages.length === 0) {
-        console.log(`[${MODULE_NAME}] No messages to compact`);
+        debugLog(`[${MODULE_NAME}] No messages to compact`);
         return;
     }
 
@@ -89,7 +85,7 @@ export async function performCompaction() {
     let totalMessagesCompacted = 0;
     const targetMessages = Math.floor(unsummarizedMessages.length * (targetCompression / 100));
 
-    console.log(`[${MODULE_NAME}] Target messages to compact:`, targetMessages, 'out of', unsummarizedMessages.length);
+    debugLog(`[${MODULE_NAME}] Target messages to compact:`, targetMessages, 'out of', unsummarizedMessages.length);
 
     let summaryIndex = storage.level1.summaries.length;
 
@@ -104,7 +100,7 @@ export async function performCompaction() {
         }
 
         const chunk = unsummarizedMessages.slice(totalMessagesCompacted, totalMessagesCompacted + chunkSize);
-        console.log(`[${MODULE_NAME}] Compressing chunk:`, chunk.length, 'messages');
+        debugLog(`[${MODULE_NAME}] Compressing chunk:`, chunk.length, 'messages');
 
         const summary = await compressChunk(chunk);
 
@@ -119,15 +115,15 @@ export async function performCompaction() {
                 tokenCount: estimateTokenCount(summary),
             });
 
-            console.log(`[${MODULE_NAME}] Marking`, chunk.length, 'messages as summarized with level 1');
+            debugLog(`[${MODULE_NAME}] Marking`, chunk.length, 'messages as summarized with level 1');
             for (const message of chunk) {
                 markMessageSummarized(message, 1, summaryId);
-                console.log(`[${MODULE_NAME}] Marked message with id:`, message.mes_id, 'extra keys:', Object.keys(message.extra || {}));
+                debugLog(`[${MODULE_NAME}] Marked message with id:`, message.mes_id, 'extra keys:', Object.keys(message.extra || {}));
             }
 
             totalMessagesCompacted += chunk.length;
             summaryIndex++;
-            console.log(`[${MODULE_NAME}] Created summary:`, summary.substring(0, 50) + '...', 'Total summaries:', storage.level1.summaries.length);
+            debugLog(`[${MODULE_NAME}] Created summary:`, summary.substring(0, 50) + '...', 'Total summaries:', storage.level1.summaries.length);
         } else {
             console.warn(`[${MODULE_NAME}] Failed to compress chunk`);
             break;
@@ -140,14 +136,14 @@ export async function performCompaction() {
     const rawMessagesTokens = totalMessagesCompacted * 100;
     storage.stats.currentCompressionRatio = totalSummaryTokens / rawMessagesTokens;
 
-    console.log(`[${MODULE_NAME}] Final stats - summarizedMessages:`, storage.stats.summarizedMessages);
-    console.log(`[${MODULE_NAME}] Total summaries:`, storage.level1.summaries.length);
-    console.log(`[${MODULE_NAME}] Compression ratio:`, storage.stats.currentCompressionRatio.toFixed(2));
+    debugLog(`[${MODULE_NAME}] Final stats - summarizedMessages:`, storage.stats.summarizedMessages);
+    debugLog(`[${MODULE_NAME}] Total summaries:`, storage.level1.summaries.length);
+    debugLog(`[${MODULE_NAME}] Compression ratio:`, storage.stats.currentCompressionRatio.toFixed(2));
 
     await saveChatStorage();
-    console.log(`[${MODULE_NAME}] Compacted ${totalMessagesCompacted} messages - Storage saved`);
+    debugLog(`[${MODULE_NAME}] Compacted ${totalMessagesCompacted} messages - Storage saved`);
     saveChatDebounced();
-    console.log(`[${MODULE_NAME}] Chat save triggered to persist message markings`);
+    debugLog(`[${MODULE_NAME}] Chat save triggered to persist message markings`);
     await injectSummaries();
 }
 
@@ -167,7 +163,7 @@ export async function applyProfileSwitch(profileId) {
     }
 
     try {
-        console.log(`[${MODULE_NAME}] Switching to profile: ${profile.name}`);
+        debugLog(`[${MODULE_NAME}] Switching to profile: ${profile.name}`);
         await executeSlashCommandsWithOptions(`/profile "${profile.name}"`, {
             handleParserErrors: true,
             handleExecutionErrors: false,
@@ -191,7 +187,7 @@ export async function compressChunk(messages) {
 
     try {
         if (USE_FAKE_SUMMARIZER) {
-            console.log(`[${MODULE_NAME}] Using fake summarizer (test mode)`);
+            debugLog(`[${MODULE_NAME}] Using fake summarizer (test mode)`);
             return createFakeSummary(messages);
         }
 
@@ -214,7 +210,7 @@ export async function compressChunk(messages) {
             const originalProfile = extensionSettings.connectionManager?.profiles.find(p => p.id === currentProfileId);
 
             if (originalProfile) {
-                console.log(`[${MODULE_NAME}] Restoring original profile: ${originalProfile.name}`);
+                debugLog(`[${MODULE_NAME}] Restoring original profile: ${originalProfile.name}`);
                 const { executeSlashCommandsWithOptions } = getContext();
                 try {
                     await executeSlashCommandsWithOptions(`/profile "${originalProfile.name}"`, {

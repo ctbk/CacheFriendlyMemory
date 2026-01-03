@@ -2,6 +2,7 @@ import { extension_settings, getContext } from '../../../../extensions.js';
 import { eventSource, event_types, saveSettingsDebounced } from '../../../../../script.js';
 import { extensionName, extensionFolderPath, defaultSettings, DEFAULT_LEVEL_1_PROMPT } from '../src/constants.js';
 import { setGlobalSetting, getChatStorage, exportChatData, importChatData, restoreDefaults } from '../src/storage.js';
+import { debugLog } from '../src/utils/debug.js';
 
 export function getConnectionProfiles() {
     return extension_settings.connectionManager?.profiles || [];
@@ -29,7 +30,7 @@ export async function loadSettings() {
 
     refreshCompressionProfileStatus();
 
-    console.log(`[${extensionName}] Settings loaded`);
+    debugLog(`[${extensionName}] Settings loaded`);
 }
 
 function bindCompressionProfileDropdown() {
@@ -81,7 +82,7 @@ function bindProfileEvents() {
         const settings = extension_settings[extensionName];
         if (settings.compressionProfileId === profileId) {
             setGlobalSetting('compressionProfileId', '');
-            console.log(`[${extensionName}] Deleted profile ${profileId} was selected, cleared setting`);
+            debugLog(`[${extensionName}] Deleted profile ${profileId} was selected, cleared setting`);
             refreshCompressionProfileStatus();
         }
     });
@@ -102,7 +103,7 @@ function bindProfileEvents() {
         });
 
         dropdown.val(currentValue);
-        console.log(`[${extensionName}] Refreshed dropdown on profile creation`);
+        debugLog(`[${extensionName}] Refreshed dropdown on profile creation`);
     });
 
     eventSource.on(event_types.CONNECTION_PROFILE_UPDATED, (profileId) => {
@@ -117,7 +118,7 @@ function bindProfileEvents() {
                 if (option.length) {
                     option.text(profile.name || profile.id);
                 }
-                console.log(`[${extensionName}] Updated profile ${profileId} in dropdown`);
+                debugLog(`[${extensionName}] Updated profile ${profileId} in dropdown`);
                 refreshCompressionProfileStatus();
             }
         }
@@ -316,9 +317,7 @@ function bindUIElements() {
             toastr.warning('Level 1 prompt cannot be empty', 'CacheFriendlyMemory');
         }
 
-        if (settings?.debugMode) {
-            console.debug(`[${extensionName}] Level 1 prompt updated:`, value);
-        }
+        debugLog(`[${extensionName}] Level 1 prompt updated:`, value);
     });
 
     $('#cfm-restore-prompt-default').on('click', function() {
@@ -327,18 +326,14 @@ function bindUIElements() {
         saveSettingsDebounced();
         toastr.success('Level 1 prompt restored to default', 'CacheFriendlyMemory');
 
-        if (settings?.debugMode) {
-            console.debug(`[${extensionName}] Level 1 prompt restored to default`);
-        }
+        debugLog(`[${extensionName}] Level 1 prompt restored to default`);
     });
 }
 
 function updateUI() {
     const settings = extension_settings[extensionName];
 
-    if (settings?.debugMode) {
-        console.debug(`[${extensionName}] updateUI called with:`, JSON.stringify(settings, null, 2));
-    }
+    debugLog(`[${extensionName}] updateUI called with:`, JSON.stringify(settings, null, 2));
 
     $('#cfm_enabled').prop('checked', settings.enabled);
     $('#cfm_autoCompact').prop('checked', settings.autoCompact);
