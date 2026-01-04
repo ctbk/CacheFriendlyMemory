@@ -15,29 +15,35 @@ describe('createFakeSummary', () => {
         expect(createFakeSummary(undefined)).toBe('[Test Summary] No messages');
     });
 
-    it('should extract first 5 words from single message', () => {
+    it('should extract first 25 words from single message', () => {
         const messages = [{ mes: 'This is a test message' }];
         const result = createFakeSummary(messages);
-        expect(result).toBe('[Test] This is a test message ... This is a test message');
+        expect(result).toContain('[Test Compressed Chunk]');
+        expect(result).toContain('[0] This is a test message');
     });
 
-    it('should extract first 5 words from first message and last 5 from last', () => {
+    it('should include each message on separate line with index', () => {
         const messages = [
             { mes: 'First message with some words here' },
             { mes: 'Second message in between' },
             { mes: 'Last message with words too' }
         ];
         const result = createFakeSummary(messages);
-        expect(result).toBe('[Test] First message with some words ... Last message with words too');
+        expect(result).toContain('[Test Compressed Chunk]');
+        expect(result).toContain('[0] First message with some words here');
+        expect(result).toContain('[1] Second message in between');
+        expect(result).toContain('[2] Last message with words too');
     });
 
-    it('should handle messages with fewer than 5 words', () => {
+    it('should handle messages with fewer than 25 words', () => {
         const messages = [
             { mes: 'Hi there' },
             { mes: 'Bye now' }
         ];
         const result = createFakeSummary(messages);
-        expect(result).toBe('[Test] Hi there ... Bye now');
+        expect(result).toContain('[Test Compressed Chunk]');
+        expect(result).toContain('[0] Hi there');
+        expect(result).toContain('[1] Bye now');
     });
 
     it('should handle very short single word messages', () => {
@@ -46,7 +52,9 @@ describe('createFakeSummary', () => {
             { mes: 'World' }
         ];
         const result = createFakeSummary(messages);
-        expect(result).toBe('[Test] Hello ... World');
+        expect(result).toContain('[Test Compressed Chunk]');
+        expect(result).toContain('[0] Hello');
+        expect(result).toContain('[1] World');
     });
 
     it('should handle missing mes field gracefully', () => {
@@ -55,7 +63,10 @@ describe('createFakeSummary', () => {
             { mes: 'Valid message' }
         ];
         const result = createFakeSummary(messages);
-        expect(result).toBe('[Test]  ... Valid message');
+        const lines = result.split('\n');
+        expect(result).toContain('[Test Compressed Chunk]');
+        expect(lines[1]).toBe('[0]');
+        expect(lines[2]).toContain('[1] Valid message');
     });
 
     it('should handle special characters and punctuation', () => {
@@ -64,7 +75,9 @@ describe('createFakeSummary', () => {
             { mes: 'Goodbye, see you later!' }
         ];
         const result = createFakeSummary(messages);
-        expect(result).toBe('[Test] Hello, world! How are you? ... Goodbye, see you later!');
+        expect(result).toContain('[Test Compressed Chunk]');
+        expect(result).toContain('[0] Hello, world! How are you?');
+        expect(result).toContain('[1] Goodbye, see you later!');
     });
 
     it('should handle messages with only whitespace', () => {
@@ -73,7 +86,10 @@ describe('createFakeSummary', () => {
             { mes: '   ' }
         ];
         const result = createFakeSummary(messages);
-        expect(result).toBe('[Test]  ... ');
+        const lines = result.split('\n');
+        expect(result).toContain('[Test Compressed Chunk]');
+        expect(lines[1]).toBe('[0]');
+        expect(lines[2]).toBe('[1]');
     });
 });
 

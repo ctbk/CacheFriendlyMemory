@@ -15,7 +15,7 @@ import {
 } from './progress.js';
 
 const MODULE_NAME = 'CacheFriendlyMemory';
-const USE_FAKE_SUMMARIZER = false;
+const USE_FAKE_SUMMARIZER = true;
 
 export async function triggerCompaction() {
     const storage = getChatStorage();

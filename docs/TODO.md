@@ -1,2 +1,1 @@
-- modify the fake summarizer so it will include the first 20-30 words of each message being compressed. One per line.
 - change the auto triggering parameters: do not autocompress before % of context. Compress until % of context is freed.

@@ -3,11 +3,20 @@ export function createFakeSummary(messages) {
         return '[Test Summary] No messages';
     }
 
-    const firstMessage = messages[0].mes || '';
-    const lastMessage = messages[messages.length - 1].mes || '';
+    const lines = ['[Test Compressed Chunk]'];
 
-    const firstWords = firstMessage.split(/\s+/).filter(w => w).slice(0, 5).join(' ');
-    const lastWords = lastMessage.split(/\s+/).filter(w => w).slice(-5).join(' ');
+    for (let i = 0; i < messages.length; i++) {
+        const message = messages[i];
+        const content = message.mes || '';
+        const words = content.split(/\s+/).filter(w => w).slice(0, 25).join(' ');
 
-    return `[Test] ${firstWords} ... ${lastWords}`;
+        // Only add space and content if there are words
+        if (words) {
+            lines.push(`[${i}] ${words}`);
+        } else {
+            lines.push(`[${i}]`);
+        }
+    }
+
+    return lines.join('\n');
 }

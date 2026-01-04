@@ -11,10 +11,10 @@ describe('Fake Summarizer Integration', () => {
 
         const summary = createFakeSummary(messages);
 
-        expect(summary).toContain('[Test]');
-        expect(summary).toContain('...');
-        expect(summary).toContain('First message with several');
-        expect(summary).toContain('Last message with several');
+        expect(summary).toContain('[Test Compressed Chunk]');
+        expect(summary).toContain('[0] First message with several words');
+        expect(summary).toContain('[1] Second message in between');
+        expect(summary).toContain('[2] Last message with several words');
     });
 
     it('should work with realistic message chunks', () => {
@@ -24,9 +24,9 @@ describe('Fake Summarizer Integration', () => {
 
         const summary = createFakeSummary(messages);
 
-        expect(summary).toContain('[Test]');
-        expect(summary).toContain('This is message number 0');
-        expect(summary).toContain('realistic. It contains multiple sentences.');
+        expect(summary).toContain('[Test Compressed Chunk]');
+        expect(summary).toContain('[0] This is message number 0');
+        expect(summary).toContain('[9] This is message number 9');
     });
 
     it('should handle chunk boundaries correctly', () => {
@@ -38,6 +38,10 @@ describe('Fake Summarizer Integration', () => {
 
         const summary = createFakeSummary(chunkStart);
 
-        expect(summary).toBe('[Test] First message of the chunk ... Third message of the chunk');
+        const lines = summary.split('\n');
+        expect(lines[0]).toBe('[Test Compressed Chunk]');
+        expect(lines[1]).toBe('[0] First message of the chunk');
+        expect(lines[2]).toBe('[1] Second message of the chunk');
+        expect(lines[3]).toBe('[2] Third message of the chunk');
     });
 });
